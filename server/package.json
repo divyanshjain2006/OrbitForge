@@ -1,0 +1,33 @@
+{
+  "name": "orbitguard-server",
+  "version": "1.0.0",
+  "description": "OrbitGuard LEO Mission Decision Intelligence backend",
+  "main": "src/server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "test": "node --test"
+  },
+  "keywords": [
+    "orbitguard",
+    "leo",
+    "space",
+    "mission-analysis",
+    "decision-intelligence"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "canonicalize": "^2.1.0",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.2",
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^9.9.3"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  }
+}

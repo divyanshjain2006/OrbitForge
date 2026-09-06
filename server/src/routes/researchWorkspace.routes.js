@@ -1,0 +1,12 @@
+import { Router } from "express";
+import { experimentView, overview, projectView, provenance, search } from "../controllers/researchWorkspace.controller.js";
+import { requireAuthentication, requireExperimentWorkspace, requireProjectWorkspace, requireTrustResourceWorkspace, requireWorkspaceRole } from "../middleware/auth.js";
+import { validateObjectId } from "../middleware/validation.js";
+const read = ["OWNER", "ADMIN", "RESEARCHER", "VIEWER"];
+const router = Router(); router.use(requireAuthentication);
+router.get("/workspaces/:workspaceId/research/overview", requireWorkspaceRole(read), overview);
+router.get("/workspaces/:workspaceId/research/search", requireWorkspaceRole(read), search);
+router.get("/projects/:id/research", validateObjectId("id"), requireProjectWorkspace(read), projectView);
+router.get("/experiments/:id/research", validateObjectId("id"), requireExperimentWorkspace(read), experimentView);
+router.get("/research-records/:id/provenance", validateObjectId("id"), requireTrustResourceWorkspace("research-record", read), provenance);
+export default router;

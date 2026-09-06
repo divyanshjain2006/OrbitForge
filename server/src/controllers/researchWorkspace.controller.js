@@ -1,0 +1,7 @@
+import { experimentResearch, parseResearchQuery, projectResearch, recordProvenance, searchWorkspace, workspaceOverview } from "../services/researchWorkspace.service.js";
+const fail = (res, status, code, message) => res.status(status).json({ success: false, error: { code, message } });
+export async function overview(req, res) { try { return res.json({ success: true, overview: await workspaceOverview(req.workspaceId) }); } catch { return fail(res, 500, "RESEARCH_OVERVIEW_FAILED", "Unable to load research overview."); } }
+export async function projectView(req, res) { try { return res.json({ success: true, research: await projectResearch(req.project) }); } catch { return fail(res, 500, "RESEARCH_RESOURCE_FAILED", "Unable to load project research view."); } }
+export async function experimentView(req, res) { try { return res.json({ success: true, research: await experimentResearch(req.experiment, req.project) }); } catch { return fail(res, 500, "RESEARCH_RESOURCE_FAILED", "Unable to load experiment research view."); } }
+export async function provenance(req, res) { try { return res.json({ success: true, provenance: await recordProvenance(req.researchRecord) }); } catch { return fail(res, 500, "RESEARCH_RESOURCE_FAILED", "Unable to load provenance."); } }
+export async function search(req, res) { try { return res.json({ success: true, ...(await searchWorkspace(req.workspaceId, parseResearchQuery(req.query))) }); } catch (error) { return fail(res, 400, error.code || "INVALID_RESEARCH_FILTER", error.message || "Invalid research query."); } }

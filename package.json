@@ -1,0 +1,23 @@
+{
+  "name": "orbitguard",
+  "version": "1.0.0",
+  "private": true,
+  "description": "LEO mission decision intelligence workspace",
+  "scripts": {
+    "install:all": "npm --prefix client install && npm --prefix server install",
+    "dev:client": "npm --prefix client run dev",
+    "dev:server": "npm --prefix server run dev",
+    "build": "npm --prefix client run build",
+    "lint": "npm --prefix client run lint",
+    "test": "npm --prefix server test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/divyanshjain2006/orbitguard.git"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/divyanshjain2006/orbitguard/issues"
+  },
+  "homepage": "https://github.com/divyanshjain2006/orbitguard#readme"
+}
