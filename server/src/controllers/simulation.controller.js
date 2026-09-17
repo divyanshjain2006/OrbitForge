@@ -3,7 +3,8 @@ import {
   getSimulation,
   getMissionSimulations,
   triggerSimulationEvent,
-  submitSimulationDecision
+  submitSimulationDecision,
+  publishSimulationToResearch
 } from "../services/simulation.service.js";
 
 export async function createSimulationHandler(req, res, next) {
@@ -46,6 +47,15 @@ export async function submitSimulationDecisionHandler(req, res, next) {
   try {
     const simulation = await submitSimulationDecision(req.workspace.id, req.params.id, req.body);
     return res.json({ success: true, simulation });
+  } catch (error) {
+    return next(error);
+  }
+}
+
+export async function publishSimulationHandler(req, res, next) {
+  try {
+    const result = await publishSimulationToResearch(req.workspace.id, req.params.id);
+    return res.status(201).json({ success: true, ...result });
   } catch (error) {
     return next(error);
   }

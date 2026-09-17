@@ -518,6 +518,14 @@ export async function getResearchRecordProvenance(id) {
   return parseApiResponse(response);
 }
 
+export async function publishAnalysisToResearch(missionId) {
+  const response = await apiFetch(`${API_BASE_URL}/v1/missions/${missionId}/analysis-runs`, {
+    method: "POST",
+    body: JSON.stringify({})
+  });
+  return parseApiResponse(response);
+}
+
 export async function verifyResearchRecord(id) {
   const response = await apiFetch(`${API_BASE_URL}/v1/research-records/${id}/verify`, {
     method: "POST",
@@ -558,10 +566,18 @@ export async function triggerSimulationEvent(id, eventData) {
   return parseApiResponse(response);
 }
 
-export async function submitSimulationDecision(id, decisionData) {
-  const response = await apiFetch(`${API_BASE_URL}/v1/simulations/${id}/decisions`, {
+export async function submitSimulationDecision(simulationId, decisionData) {
+  const response = await apiFetch(`${API_BASE_URL}/v1/simulations/${simulationId}/decisions`, {
     method: "POST",
     body: JSON.stringify(decisionData)
+  });
+  return parseApiResponse(response);
+}
+
+export async function publishSimulationToResearch(simulationId) {
+  const response = await apiFetch(`${API_BASE_URL}/v1/simulations/${simulationId}/research`, {
+    method: "POST",
+    body: JSON.stringify({})
   });
   return parseApiResponse(response);
 }
@@ -598,10 +614,18 @@ export async function startChallenge(id) {
   return parseApiResponse(response);
 }
 
-export async function submitChallengeDecision(id, decisionData) {
-  const response = await apiFetch(`${API_BASE_URL}/v1/challenges/${id}/decisions`, {
+export async function submitChallengeDecision(challengeId, decisionData) {
+  const response = await apiFetch(`${API_BASE_URL}/v1/challenges/${challengeId}/decisions`, {
     method: "POST",
     body: JSON.stringify(decisionData)
+  });
+  return parseApiResponse(response);
+}
+
+export async function publishChallengeToResearch(challengeId) {
+  const response = await apiFetch(`${API_BASE_URL}/v1/challenges/${challengeId}/research`, {
+    method: "POST",
+    body: JSON.stringify({})
   });
   return parseApiResponse(response);
 }

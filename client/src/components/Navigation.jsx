@@ -14,8 +14,8 @@ function Navigation() {
   };
 
   const navItems = [
-    { to: "/", label: "Platform Overview", end: true },
-    { to: "/research/datasets", label: "NASA Data", authOnly: true },
+    { to: "/", label: "Overview", end: true },
+    { to: "/research/datasets", label: "NASA Space Weather", authOnly: true },
     { to: "/research", label: "Research Lab", authOnly: true },
   ];
 

@@ -318,11 +318,11 @@ function Dashboard() {
             PLATFORM CONTROL CENTER
           </p>
 
-          <h1>OrbitForge</h1>
+          <h1>OrbitForge Space Weather & Mission Lab</h1>
 
           <p className="page-subtitle">
-            Workspace overview, mission intelligence, research provenance,
-            and orbital risk assessment.
+            Interactive mission laboratory utilizing real NASA CCMC DONKI space weather data,
+            deterministic orbital risk models, and cryptographic research provenance.
           </p>
         </div>
 
@@ -520,8 +520,8 @@ function Dashboard() {
               <h3>No missions registered</h3>
 
               <p>
-                Create your first LEO mission to begin
-                orbital analysis.
+                Create your first Low Earth Orbit (LEO) mission to begin
+                evaluating orbital parameters against NASA space weather models.
               </p>
 
               <Link

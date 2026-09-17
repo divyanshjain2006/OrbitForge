@@ -1,10 +1,12 @@
 import mongoose from "mongoose";
 
 const researchRecordSchema = new mongoose.Schema({
-  artifactType: { type: String, enum: ["MISSION_ANALYSIS", "EXPERIMENT_RUN"], default: "MISSION_ANALYSIS", immutable: true },
+  artifactType: { type: String, enum: ["MISSION_ANALYSIS", "EXPERIMENT_RUN", "SIMULATION_RUN", "CHALLENGE_RUN"], default: "MISSION_ANALYSIS", immutable: true },
   missionId: { type: mongoose.Schema.Types.ObjectId, ref: "Mission", default: null, index: true, immutable: true },
   analysisRunId: { type: mongoose.Schema.Types.ObjectId, ref: "AnalysisRun", default: undefined, unique: true, sparse: true, immutable: true },
   experimentRunId: { type: mongoose.Schema.Types.ObjectId, ref: "ExperimentRun", default: undefined, unique: true, sparse: true, immutable: true },
+  simulationId: { type: mongoose.Schema.Types.ObjectId, ref: "Simulation", default: undefined, unique: true, sparse: true, immutable: true },
+  challengeId: { type: mongoose.Schema.Types.ObjectId, ref: "Challenge", default: undefined, unique: true, sparse: true, immutable: true },
   recordVersion: { type: String, required: true, immutable: true },
   semanticPayload: { type: mongoose.Schema.Types.Mixed, required: true, immutable: true },
   canonicalizationVersion: { type: String, required: true, immutable: true },

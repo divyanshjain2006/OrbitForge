@@ -9,7 +9,8 @@ import {
   getMissionAssessmentHistory,
   getMissionDecisions,
   createMissionDecision,
-  applyApprovedScenario
+  applyApprovedScenario,
+  publishAnalysisToResearch
 } from "../services/api";
 
 import AiInsightPanel from "../components/ai/AiInsightPanel";
@@ -100,6 +101,25 @@ function Analysis() {
   const [error, setError] = useState("");
   const decisionRisk =
     selectedScenario?.risk ||
+    analysis?.risk;
+
+  const [publishing, setPublishing] = useState(false);
+  const [publishMessage, setPublishMessage] = useState("");
+  const [publishError, setPublishError] = useState("");
+
+  const handlePublish = async () => {
+    try {
+      setPublishing(true);
+      setPublishMessage("");
+      setPublishError("");
+      const result = await publishAnalysisToResearch(missionId);
+      setPublishMessage(`Successfully published analysis! Research Record ID: ${result.researchRecord?._id}`);
+    } catch (err) {
+      setPublishError(err.message || "Failed to publish research record.");
+    } finally {
+      setPublishing(false);
+    }
+  };
     analysis?.risk ||
     null;
 
@@ -736,7 +756,15 @@ function Analysis() {
           </p>
         </div>
 
-        <div className="header-actions" style={{ display: "flex", gap: "1rem" }}>
+        <div className="header-actions" style={{ display: "flex", gap: "1rem", flexWrap: "wrap", justifyContent: "flex-end" }}>
+          <button
+            onClick={handlePublish}
+            disabled={publishing || loading}
+            className="button button-secondary"
+            style={{ borderColor: "var(--status-info)", color: "var(--status-info)" }}
+          >
+            {publishing ? "Publishing..." : "Publish to Research"}
+          </button>
           <Link
             to={`/challenges/${missionId}`}
             className="button button-primary"
@@ -753,10 +781,17 @@ function Analysis() {
             to="/"
             className="button button-secondary"
           >
-            ← Dashboard
+            Back
           </Link>
         </div>
       </section>
+
+      {(publishMessage || publishError) && (
+        <div style={{ marginBottom: "2rem" }}>
+          {publishMessage && <div className="alert" role="alert" style={{ backgroundColor: "rgba(6, 182, 212, 0.1)", color: "var(--status-info)", border: "1px solid var(--status-info)" }}>{publishMessage}</div>}
+          {publishError && <div className="alert" role="alert" style={{ backgroundColor: "rgba(239, 68, 68, 0.1)", color: "var(--status-error)", border: "1px solid var(--status-error)" }}>{publishError}</div>}
+        </div>
+      )}
 
       {/* =====================================================
           ORBITAL CONFIGURATION

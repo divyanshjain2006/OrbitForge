@@ -65,7 +65,7 @@ export async function triggerNextEvent(workspaceId, challengeId) {
 
   // Pipe the event to the simulation
   const simulation = await triggerSimulationEvent(workspaceId, challenge.simulationId, stageDef.event);
-  
+
   challenge.status = "DECISION_REQUIRED";
   await challenge.save();
 
@@ -103,4 +103,68 @@ export async function submitChallengeDecision(workspaceId, challengeId, decision
 
   // Try to trigger the next event automatically, or complete if no more stages
   return triggerNextEvent(workspaceId, challengeId);
+}
+
+import crypto from "node:crypto";
+import mongoose from "mongoose";
+import ResearchRecord from "../models/researchRecord.model.js";
+import IntegrityManifest from "../models/integrityManifest.model.js";
+import { CANONICALIZATION_VERSION, HASH_ALGORITHM, assertFiniteJson, sha256Digest } from "./integrity.service.js";
+
+const SYSTEM_AGENT = "OrbitForge challenge service";
+const MODEL_VERSIONS = Object.freeze({ challenge: "1.0.0" });
+
+function buildChallengeProvenance(challenge, startedAt, completedAt) {
+  return {
+    entities: [{ id: "challenge-state", type: "Entity", role: "challenge-output", value: { stages: challenge.currentStage, score: challenge.performanceScore } }],
+    activity: { type: "Activity", name: "mission-challenge", startedAt: startedAt.toISOString(), completedAt: completedAt.toISOString(), used: ["challenge-state"] },
+    agent: { type: "Agent", id: "orbitforge-backend", name: SYSTEM_AGENT },
+    relationships: { wasGeneratedBy: "mission-challenge", wasAssociatedWith: "orbitforge-backend", wasDerivedFrom: "challenge-state" }
+  };
+}
+
+export async function publishChallengeToResearch(workspaceId, challengeId) {
+  const challenge = await Challenge.findOne({ _id: challengeId, workspaceId }).lean();
+  if (!challenge) {
+    throw new Error("Challenge not found.");
+  }
+
+  const existingRecord = await ResearchRecord.findOne({ challengeId: challenge._id }).lean();
+  if (existingRecord) return { researchRecord: existingRecord };
+
+  const startedAt = challenge.createdAt || new Date();
+  const completedAt = new Date();
+
+  const payload = {
+    recordVersion: "1.0",
+    inputs: { missionId: challenge.missionId, challengeType: challenge.challengeType },
+    outputs: { status: challenge.status, performanceScore: challenge.performanceScore, currentStage: challenge.currentStage, playerDecisionHistory: challenge.playerDecisionHistory },
+    modelVersions: MODEL_VERSIONS,
+    provenance: buildChallengeProvenance(challenge, startedAt, completedAt)
+  };
+
+  assertFiniteJson(payload);
+
+  const recordId = new mongoose.Types.ObjectId();
+  const manifestId = new mongoose.Types.ObjectId();
+  const digest = sha256Digest(payload);
+
+  try {
+    await IntegrityManifest.create({ _id: manifestId, researchRecordId: recordId, algorithm: HASH_ALGORITHM, canonicalizationVersion: CANONICALIZATION_VERSION, digest, createdBy: SYSTEM_AGENT });
+    const researchRecord = await ResearchRecord.create({
+      _id: recordId,
+      artifactType: "CHALLENGE_RUN",
+      missionId: challenge.missionId,
+      challengeId: challenge._id,
+      recordVersion: "1.0",
+      semanticPayload: payload,
+      canonicalizationVersion: CANONICALIZATION_VERSION,
+      integrityManifestId: manifestId,
+      provenance: payload.provenance
+    });
+    return { researchRecord, manifest: await IntegrityManifest.findById(manifestId).lean() };
+  } catch (error) {
+    await IntegrityManifest.deleteOne({ _id: manifestId });
+    throw error;
+  }
 }

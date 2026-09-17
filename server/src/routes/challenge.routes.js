@@ -7,7 +7,8 @@ import {
   getMissionChallengesController,
   getChallengeController,
   startChallengeController,
-  submitChallengeDecisionController
+  submitChallengeDecisionController,
+  publishChallengeController
 } from "../controllers/challenge.controller.js";
 
 const router = express.Router();
@@ -22,5 +23,6 @@ router.post("/missions/:missionId", requireWorkspaceMember, createChallengeContr
 router.get("/:id", requireWorkspaceMember, getChallengeController);
 router.post("/:id/start", requireWorkspaceMember, startChallengeController);
 router.post("/:id/decisions", requireWorkspaceMember, submitChallengeDecisionController);
+router.post("/:id/research", requireWorkspaceMember, publishChallengeController);
 
 export default router;

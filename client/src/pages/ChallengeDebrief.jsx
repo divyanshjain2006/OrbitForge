@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { getChallenge, getSimulation } from "../services/api";
+import { getChallenge, getSimulation, publishChallengeToResearch } from "../services/api";
 import AiInsightPanel from "../components/ai/AiInsightPanel";
+import SpaceWeatherPanel from "../components/SpaceWeatherPanel";
 import "./Analysis.css";
 
 export default function ChallengeDebrief() {
@@ -10,6 +11,25 @@ export default function ChallengeDebrief() {
   const [simulation, setSimulation] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  const [publishing, setPublishing] = useState(false);
+  const [publishMessage, setPublishMessage] = useState("");
+  const [publishError, setPublishError] = useState("");
+
+  async function handlePublish() {
+    if (!challenge) return;
+    try {
+      setPublishing(true);
+      setPublishMessage("");
+      setPublishError("");
+      const result = await publishChallengeToResearch(challenge._id);
+      setPublishMessage(`Successfully published! Research Record ID: ${result.researchRecord?._id}`);
+    } catch (err) {
+      setPublishError(err.message || "Failed to publish research record.");
+    } finally {
+      setPublishing(false);
+    }
+  }
 
   useEffect(() => {
     async function loadData() {
@@ -58,7 +78,15 @@ export default function ChallengeDebrief() {
           <h1>Challenge: {challenge.challengeType}</h1>
           <p className="muted">Final evaluation and operational outcome.</p>
         </div>
-        <div className="header-actions">
+        <div className="header-actions" style={{ display: "flex", gap: "1rem", flexWrap: "wrap", justifyContent: "flex-end" }}>
+          <button
+            onClick={handlePublish}
+            disabled={publishing}
+            className="button button-secondary"
+            style={{ borderColor: "var(--status-info)", color: "var(--status-info)" }}
+          >
+            {publishing ? "Publishing..." : "Publish to Research"}
+          </button>
           <Link to={`/challenges/${missionId}`} className="button button-secondary">
             Return to Challenges
           </Link>
@@ -67,6 +95,13 @@ export default function ChallengeDebrief() {
           </Link>
         </div>
       </header>
+
+      {(publishMessage || publishError) && (
+        <div style={{ marginTop: "1rem" }}>
+          {publishMessage && <div className="alert" role="alert" style={{ backgroundColor: "rgba(6, 182, 212, 0.1)", color: "var(--status-info)", border: "1px solid var(--status-info)" }}>{publishMessage}</div>}
+          {publishError && <div className="alert" role="alert" style={{ backgroundColor: "rgba(239, 68, 68, 0.1)", color: "var(--status-error)", border: "1px solid var(--status-error)" }}>{publishError}</div>}
+        </div>
+      )}
 
       <div className="analysis-grid" style={{ marginTop: "2rem" }}>
         <div className="analysis-main">
@@ -142,6 +177,8 @@ export default function ChallengeDebrief() {
               </p>
             </div>
           </section>
+
+          <SpaceWeatherPanel />
 
           <AiInsightPanel
             role="SCENARIO_ANALYST"

@@ -4,7 +4,8 @@ import {
   getSimulationHandler,
   listMissionSimulationsHandler,
   triggerSimulationEventHandler,
-  submitSimulationDecisionHandler
+  submitSimulationDecisionHandler,
+  publishSimulationHandler
 } from "../controllers/simulation.controller.js";
 import {
   validateObjectId,
@@ -23,5 +24,6 @@ router.get("/missions/:missionId/simulations", validateObjectId("missionId"), li
 router.get("/simulations/:id", validateObjectId("id"), getSimulationHandler);
 router.post("/simulations/:id/events", validateObjectId("id"), validateSimulationEventBody, triggerSimulationEventHandler);
 router.post("/simulations/:id/decisions", validateObjectId("id"), validateSimulationDecisionBody, submitSimulationDecisionHandler);
+router.post("/simulations/:id/research", validateObjectId("id"), publishSimulationHandler);
 
 export default router;

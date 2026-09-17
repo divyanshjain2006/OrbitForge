@@ -148,3 +148,68 @@ export async function submitSimulationDecision(workspaceId, simulationId, decisi
   await simulation.save();
   return simulation;
 }
+
+import crypto from "node:crypto";
+import mongoose from "mongoose";
+import ResearchRecord from "../models/researchRecord.model.js";
+import IntegrityManifest from "../models/integrityManifest.model.js";
+import { CANONICALIZATION_VERSION, HASH_ALGORITHM, assertFiniteJson, sha256Digest } from "./integrity.service.js";
+
+const SYSTEM_AGENT = "OrbitForge simulation service";
+const MODEL_VERSIONS = Object.freeze({ risk: "2.0.0", environment: "1.0.0", simulation: "1.0.0" });
+
+function buildSimulationProvenance(simulation, startedAt, completedAt) {
+  return {
+    entities: [{ id: "simulation-state", type: "Entity", role: "simulation-output", value: { timelineEvents: simulation.timeline.length } }],
+    activity: { type: "Activity", name: "mission-simulation", startedAt: startedAt.toISOString(), completedAt: completedAt.toISOString(), used: ["simulation-state"] },
+    agent: { type: "Agent", id: "orbitforge-backend", name: SYSTEM_AGENT },
+    relationships: { wasGeneratedBy: "mission-simulation", wasAssociatedWith: "orbitforge-backend", wasDerivedFrom: "simulation-state" }
+  };
+}
+
+export async function publishSimulationToResearch(workspaceId, simulationId) {
+  const simulation = await Simulation.findOne({ _id: simulationId, workspaceId }).lean();
+  if (!simulation) {
+    throw new Error("Simulation not found.");
+  }
+
+  // Check if it already exists
+  const existingRecord = await ResearchRecord.findOne({ simulationId: simulation._id }).lean();
+  if (existingRecord) return { researchRecord: existingRecord };
+
+  const startedAt = simulation.createdAt || new Date();
+  const completedAt = new Date();
+
+  const payload = {
+    recordVersion: "1.0",
+    inputs: { missionId: simulation.missionId, initialState: simulation.initialState },
+    outputs: { currentState: simulation.currentState, timeline: simulation.timeline, performanceScore: simulation.performanceScore, currentMissionDay: simulation.currentMissionDay },
+    modelVersions: MODEL_VERSIONS,
+    provenance: buildSimulationProvenance(simulation, startedAt, completedAt)
+  };
+
+  assertFiniteJson(payload);
+
+  const recordId = new mongoose.Types.ObjectId();
+  const manifestId = new mongoose.Types.ObjectId();
+  const digest = sha256Digest(payload);
+
+  try {
+    await IntegrityManifest.create({ _id: manifestId, researchRecordId: recordId, algorithm: HASH_ALGORITHM, canonicalizationVersion: CANONICALIZATION_VERSION, digest, createdBy: SYSTEM_AGENT });
+    const researchRecord = await ResearchRecord.create({
+      _id: recordId,
+      artifactType: "SIMULATION_RUN",
+      missionId: simulation.missionId,
+      simulationId: simulation._id,
+      recordVersion: "1.0",
+      semanticPayload: payload,
+      canonicalizationVersion: CANONICALIZATION_VERSION,
+      integrityManifestId: manifestId,
+      provenance: payload.provenance
+    });
+    return { researchRecord, manifest: await IntegrityManifest.findById(manifestId).lean() };
+  } catch (error) {
+    await IntegrityManifest.deleteOne({ _id: manifestId });
+    throw error;
+  }
+}
