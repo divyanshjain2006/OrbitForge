@@ -31,5 +31,5 @@ export function issueToken(user) {
 }
 
 export function verifyToken(token) {
-  return jwt.verify(token, jwtSecret(), { issuer: "orbitforge", audience: "orbitforge-api" });
+  return jwt.verify(token, jwtSecret(), { issuer: "orbitforge", audience: "orbitforge-api", algorithms: ["HS256"] });
 }

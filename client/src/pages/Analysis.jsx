@@ -416,6 +416,11 @@ function Analysis() {
         setError("Mission ID is missing.");
         return;
       }
+      
+      if (!activeWorkspaceId || activeWorkspaceId === "undefined") {
+        // Wait until activeWorkspaceId is resolved
+        return;
+      }
 
       try {
         setLoading(true);

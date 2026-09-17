@@ -4,7 +4,12 @@ import { recordAuditEvent } from "../services/audit.service.js";
 
 function fail(res, status, code, message) { return res.status(status).json({ success: false, error: { code, message } }); }
 export async function createDatasetController(req, res) {
-  try { const dataset = await createDataset({ ...req.body, workspaceId: req.workspaceId, createdBy: req.auth.userId }); void recordAuditEvent({ action: "DATASET_CREATE", outcome: "SUCCESS", actorId: req.auth.userId, workspaceId: req.workspaceId, resourceType: "Dataset", resourceId: String(dataset._id), requestId: req.requestId }); return res.status(201).json({ success: true, dataset }); }
+  try { 
+    const { name, type, source, tags, externalId } = req.body;
+    const dataset = await createDataset({ name, type, source, tags, externalId, workspaceId: req.workspaceId, createdBy: req.auth.userId }); 
+    void recordAuditEvent({ action: "DATASET_CREATE", outcome: "SUCCESS", actorId: req.auth.userId, workspaceId: req.workspaceId, resourceType: "Dataset", resourceId: String(dataset._id), requestId: req.requestId }); 
+    return res.status(201).json({ success: true, dataset }); 
+  }
   catch { return fail(res, 400, "DATASET_CREATE_FAILED", "Unable to create dataset."); }
 }
 export async function listDatasetsController(req, res) { return res.json({ success: true, datasets: await listDatasets(req.workspaceId) }); }

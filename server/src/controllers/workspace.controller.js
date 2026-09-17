@@ -15,7 +15,7 @@ export async function createWorkspace(req, res) {
 
 export async function listWorkspaces(req, res) {
   const memberships = await listWorkspacesForUser(req.auth.userId);
-  return res.json({ success: true, workspaces: memberships.map(({ workspaceId, role }) => ({ ...workspaceId, role })) });
+  return res.json({ success: true, workspaces: memberships.map(({ workspaceId, role }) => ({ ...workspaceId, id: String(workspaceId._id), role })) });
 }
 
 export async function createMembership(req, res) {

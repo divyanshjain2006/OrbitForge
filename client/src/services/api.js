@@ -357,6 +357,14 @@ export async function login(email, password) {
   return parseApiResponse(response);
 }
 
+export async function register(email, password, displayName) {
+  const response = await apiFetch(`${API_BASE_URL}/v1/auth/register`, {
+    method: "POST",
+    body: JSON.stringify({ email, password, displayName })
+  });
+  return parseApiResponse(response);
+}
+
 export async function getMe() {
   const response = await apiFetch(`${API_BASE_URL}/v1/auth/me`);
   return parseApiResponse(response);

@@ -1,6 +1,6 @@
 /* eslint-disable react-refresh/only-export-components, react-hooks/set-state-in-effect */
 import { createContext, useContext, useState, useEffect, useCallback } from "react";
-import { login as apiLogin, getMe } from "../services/api";
+import { login as apiLogin, register as apiRegister, getMe } from "../services/api";
 
 const AuthContext = createContext(null);
 
@@ -56,6 +56,25 @@ export function AuthProvider({ children }) {
     }
   };
 
+  const register = async (email, password, displayName) => {
+    setIsLoading(true);
+    try {
+      const data = await apiRegister(email, password, displayName);
+      if (data.success && data.token) {
+        setToken(data.token);
+        localStorage.setItem("token", data.token);
+        await checkAuth(); // Refetch user with new token
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error("Registration failed:", error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const logout = () => {
     setUser(null);
     setToken(null);
@@ -68,6 +87,7 @@ export function AuthProvider({ children }) {
     isAuthenticated: !!user,
     isLoading,
     login,
+    register,
     logout
   };
 

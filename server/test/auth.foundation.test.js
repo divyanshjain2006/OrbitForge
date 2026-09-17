@@ -23,6 +23,33 @@ test("signed authentication tokens identify the subject and reject tampering", (
   assert.throws(() => verifyToken(`${token}x`));
 });
 
+import bcrypt from "bcryptjs";
+import { registerUser } from "../src/services/auth.service.js";
+import User from "../src/models/user.model.js";
+
+test("registerUser creates a user and securely bcrypt-hashes the password", async () => {
+  const originalCreate = User.create;
+  let createdPayload = null;
+  User.create = async (payload) => {
+    createdPayload = payload;
+    return { ...payload, _id: "new_user_id" };
+  };
+
+  try {
+    await registerUser({ email: "New@Example.Test", password: "SuperSecretPassword", displayName: "New" });
+    assert.equal(createdPayload.email, "new@example.test");
+    assert.equal(createdPayload.displayName, "New");
+    assert.equal(createdPayload.password, undefined);
+    assert.equal(typeof createdPayload.passwordHash, "string");
+    
+    // Verify it's a bcrypt hash
+    const isMatch = await bcrypt.compare("SuperSecretPassword", createdPayload.passwordHash);
+    assert.equal(isMatch, true);
+  } finally {
+    User.create = originalCreate;
+  }
+});
+
 test("authentication validation rejects short credentials and accepts valid registration input", () => {
   const invalid = runValidation(validateAuthBody({ registration: true }), { email: "bad", password: "short", displayName: "" });
   assert.equal(invalid.nextCalled, false);

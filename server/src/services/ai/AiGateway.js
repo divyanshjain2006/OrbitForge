@@ -95,9 +95,10 @@ export async function processAiRequest(workspaceId, userId, role, contextRefs, u
     const latency = Date.now() - startTime;
 
     // 6. Save Success
-    interaction.answer = result.answer;
-    interaction.reasoningSummary = result.reasoningSummary;
-    interaction.scientificCaveats = result.scientificCaveats;
+    const sanitize = (str) => typeof str === "string" ? str.replace(/</g, "&lt;").replace(/>/g, "&gt;") : str;
+    interaction.answer = sanitize(result.answer);
+    interaction.reasoningSummary = sanitize(result.reasoningSummary);
+    interaction.scientificCaveats = sanitize(result.scientificCaveats);
     interaction.status = "SUCCESS";
     interaction.latencyMs = latency;
     await interaction.save();

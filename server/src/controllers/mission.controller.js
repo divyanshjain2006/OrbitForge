@@ -15,7 +15,8 @@ import { recordAuditEvent } from "../services/audit.service.js";
 
 export async function createMissionController(req, res) {
   try {
-    const mission = await createMission({ ...req.body, ...(req.workspaceId ? { workspaceId: req.workspaceId } : {}) });
+    const { name, altitude, inclination, duration } = req.body;
+    const mission = await createMission({ name, altitude, inclination, duration, ...(req.workspaceId ? { workspaceId: req.workspaceId } : {}) });
 
     if (req.auth) void recordAuditEvent({ action: "MISSION_CREATE", outcome: "SUCCESS", actorId: req.auth.userId, workspaceId: req.workspaceId || null, resourceType: "Mission", resourceId: String(mission._id), requestId: req.requestId });
 

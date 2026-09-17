@@ -8,6 +8,7 @@ import SimulationLab from "./pages/SimulationLab";
 import MissionChallenges from "./pages/MissionChallenges";
 import ChallengeDebrief from "./pages/ChallengeDebrief";
 import Login from "./pages/Login";
+import Register from "./pages/Register";
 
 // Research Lab Pages
 import ResearchLayout from "./components/ResearchLayout";
@@ -37,6 +38,7 @@ function App() {
             <main className="app-main">
               <Routes>
                 <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
 
                 {/* Protected Platform Routes */}
                 <Route path="/" element={
