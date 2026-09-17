@@ -2,7 +2,7 @@
 
 ## Scope and evidence boundary
 
-OrbitGuard is a mission-planning prototype. It combines a circular two-body orbital calculation with deterministic, explainable configuration rules. Mission altitude, inclination, and duration are user inputs stored in MongoDB; they are not an ephemeris, telemetry stream, catalog object, or NASA data product.
+OrbitForge is a mission-planning prototype. It combines a circular two-body orbital calculation with deterministic, explainable configuration rules. Mission altitude, inclination, and duration are user inputs stored in MongoDB; they are not an ephemeris, telemetry stream, catalog object, or NASA data product.
 
 The only physics calculation currently implemented is in `server/src/services/analysis/orbitalAnalysis.service.js`. Risk and environment outputs are **heuristic decision-support indices**, not measurements, probabilities, or validated safety limits.
 
@@ -27,8 +27,8 @@ These are first-order circular, two-body estimates. They do not propagate a stat
 | Atmospheric drag | altitude <250: 30; <300: 24; <450: 14; ≤800: 0; >800: 3 | Qualitative drag-exposure flag |
 | Radiation | +6 if altitude >800; +5 if inclination >90 | Qualitative geometry-context flag |
 
-It does **not** calculate density, ballistic coefficient, drag force, lifetime, particle spectra, dose, total ionizing dose, single-event effects, solar activity, or geomagnetic activity. NOAA explains that LEO drag varies with thermospheric density and solar/geomagnetic activity; those inputs are absent here [NOAA SWPC](https://www.swpc.noaa.gov/impacts/satellite-drag). The score is therefore an OrbitGuard-defined screening signal, not a space-weather severity, density measurement, radiation measurement, or dose prediction.
+It does **not** calculate density, ballistic coefficient, drag force, lifetime, particle spectra, dose, total ionizing dose, single-event effects, solar activity, or geomagnetic activity. NOAA explains that LEO drag varies with thermospheric density and solar/geomagnetic activity; those inputs are absent here [NOAA SWPC](https://www.swpc.noaa.gov/impacts/satellite-drag). The score is therefore an OrbitForge-defined screening signal, not a space-weather severity, density measurement, radiation measurement, or dose prediction.
 
 ## Relationship to conjunction assessment
 
-OrbitGuard calculates no close approaches, miss distances, object states, covariance matrices, conjunction data messages, hard-body radii, or probability of collision (Pc). A close approach is a screening result; NASA notes it does not by itself establish collision risk. Pc uses predicted ephemerides and their uncertainties, and is distinct from OrbitGuard’s 0–100 score [NASA CARA](https://www.nasa.gov/cara/step-2-close-approach-risk-assessment/). No OrbitGuard score, level, decision, or scenario comparison may be described as Pc or an operational conjunction assessment.
+OrbitForge calculates no close approaches, miss distances, object states, covariance matrices, conjunction data messages, hard-body radii, or probability of collision (Pc). A close approach is a screening result; NASA notes it does not by itself establish collision risk. Pc uses predicted ephemerides and their uncertainties, and is distinct from OrbitForge’s 0–100 score [NASA CARA](https://www.nasa.gov/cara/step-2-close-approach-risk-assessment/). No OrbitForge score, level, decision, or scenario comparison may be described as Pc or an operational conjunction assessment.

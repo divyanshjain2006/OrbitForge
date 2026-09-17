@@ -329,28 +329,46 @@ function normalizeIds(obj) {
   return obj;
 }
 
+
+export class ApiError extends Error {
+  constructor(message, status, code, data) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+    this.code = code;
+    this.data = data;
+  }
+}
+
+async function parseApiResponse(response) {
+  let data;
+  try {
+    data = await response.json();
+  } catch {
+    throw new ApiError("Invalid JSON from server", response.status, "MALFORMED_RESPONSE", null);
+  }
+  if (!response.ok) {
+    throw new ApiError(data.error?.message || data.message || "API request failed", response.status, data.error?.code || "API_ERROR", data);
+  }
+  return normalizeIds(data);
+}
+
 export async function login(email, password) {
   const response = await apiFetch(`${API_BASE_URL}/v1/auth/login`, {
     method: "POST",
     body: JSON.stringify({ email, password })
   });
-  const data = await response.json();
-  if (!response.ok) throw new Error(data.error?.message || data.message || "Failed request");
-  return normalizeIds(data);
+  return parseApiResponse(response);
 }
 
 export async function getMe() {
   const response = await apiFetch(`${API_BASE_URL}/v1/auth/me`);
-  const data = await response.json();
-  if (!response.ok) throw new Error(data.error?.message || data.message || "Failed request");
-  return normalizeIds(data);
+  return parseApiResponse(response);
 }
 
 export async function getWorkspaces() {
   const response = await apiFetch(`${API_BASE_URL}/v1/workspaces`);
-  const data = await response.json();
-  if (!response.ok) throw new Error(data.error?.message || data.message || "Failed request");
-  return normalizeIds(data);
+  return parseApiResponse(response);
 }
 
 /* =========================================================
@@ -359,37 +377,27 @@ export async function getWorkspaces() {
 
 export async function getDatasets(workspaceId) {
   const response = await apiFetch(`${API_BASE_URL}/v1/workspaces/${workspaceId}/datasets`);
-  const data = await response.json();
-  if (!response.ok) throw new Error(data.error?.message || data.message || "Failed request");
-  return normalizeIds(data);
+  return parseApiResponse(response);
 }
 
 export async function getDatasetById(id) {
   const response = await apiFetch(`${API_BASE_URL}/v1/datasets/${id}`);
-  const data = await response.json();
-  if (!response.ok) throw new Error(data.error?.message || data.message || "Failed request");
-  return normalizeIds(data);
+  return parseApiResponse(response);
 }
 
 export async function ingestDataset(id) {
   const response = await apiFetch(`${API_BASE_URL}/v1/datasets/${id}/ingest`, { method: "POST" });
-  const data = await response.json();
-  if (!response.ok) throw new Error(data.error?.message || data.message || "Failed request");
-  return normalizeIds(data);
+  return parseApiResponse(response);
 }
 
 export async function getDatasetVersions(id) {
   const response = await apiFetch(`${API_BASE_URL}/v1/datasets/${id}/versions`);
-  const data = await response.json();
-  if (!response.ok) throw new Error(data.error?.message || data.message || "Failed request");
-  return normalizeIds(data);
+  return parseApiResponse(response);
 }
 
 export async function getDatasetVersionById(id) {
   const response = await apiFetch(`${API_BASE_URL}/v1/dataset-versions/${id}`);
-  const data = await response.json();
-  if (!response.ok) throw new Error(data.error?.message || data.message || "Failed request");
-  return normalizeIds(data);
+  return parseApiResponse(response);
 }
 
 /* =========================================================
@@ -398,16 +406,12 @@ export async function getDatasetVersionById(id) {
 
 export async function getProjects(workspaceId) {
   const response = await apiFetch(`${API_BASE_URL}/v1/workspaces/${workspaceId}/projects`);
-  const data = await response.json();
-  if (!response.ok) throw new Error(data.error?.message || data.message || "Failed request");
-  return normalizeIds(data);
+  return parseApiResponse(response);
 }
 
 export async function getProjectById(id) {
   const response = await apiFetch(`${API_BASE_URL}/v1/projects/${id}`);
-  const data = await response.json();
-  if (!response.ok) throw new Error(data.error?.message || data.message || "Failed request");
-  return normalizeIds(data);
+  return parseApiResponse(response);
 }
 
 export async function createProject(workspaceId, projectData) {
@@ -415,9 +419,7 @@ export async function createProject(workspaceId, projectData) {
     method: "POST",
     body: JSON.stringify(projectData)
   });
-  const data = await response.json();
-  if (!response.ok) throw new Error(data.error?.message || data.message || "Failed request");
-  return normalizeIds(data);
+  return parseApiResponse(response);
 }
 
 /* =========================================================
@@ -426,16 +428,12 @@ export async function createProject(workspaceId, projectData) {
 
 export async function getExperiments(projectId) {
   const response = await apiFetch(`${API_BASE_URL}/v1/projects/${projectId}/experiments`);
-  const data = await response.json();
-  if (!response.ok) throw new Error(data.error?.message || data.message || "Failed request");
-  return normalizeIds(data);
+  return parseApiResponse(response);
 }
 
 export async function getExperimentById(id) {
   const response = await apiFetch(`${API_BASE_URL}/v1/experiments/${id}`);
-  const data = await response.json();
-  if (!response.ok) throw new Error(data.error?.message || data.message || "Failed request");
-  return normalizeIds(data);
+  return parseApiResponse(response);
 }
 
 export async function createExperiment(projectId, experimentData) {
@@ -443,23 +441,17 @@ export async function createExperiment(projectId, experimentData) {
     method: "POST",
     body: JSON.stringify(experimentData)
   });
-  const data = await response.json();
-  if (!response.ok) throw new Error(data.error?.message || data.message || "Failed request");
-  return normalizeIds(data);
+  return parseApiResponse(response);
 }
 
 export async function getExperimentRuns(experimentId) {
   const response = await apiFetch(`${API_BASE_URL}/v1/experiments/${experimentId}/runs`);
-  const data = await response.json();
-  if (!response.ok) throw new Error(data.error?.message || data.message || "Failed request");
-  return normalizeIds(data);
+  return parseApiResponse(response);
 }
 
 export async function getExperimentRunById(id) {
   const response = await apiFetch(`${API_BASE_URL}/v1/experiment-runs/${id}`);
-  const data = await response.json();
-  if (!response.ok) throw new Error(data.error?.message || data.message || "Failed request");
-  return normalizeIds(data);
+  return parseApiResponse(response);
 }
 
 export async function createExperimentRun(experimentId, runData) {
@@ -477,18 +469,14 @@ export async function createExperimentRun(experimentId, runData) {
     method: "POST",
     body: JSON.stringify(formattedData)
   });
-  const data = await response.json();
-  if (!response.ok) throw new Error(data.error?.message || data.message || "Failed request");
-  return normalizeIds(data);
+  return parseApiResponse(response);
 }
 
 export async function reproduceRun(id) {
   const response = await apiFetch(`${API_BASE_URL}/v1/experiment-runs/${id}/reproduce`, {
     method: "POST"
   });
-  const data = await response.json();
-  if (!response.ok) throw new Error(data.error?.message || data.message || "Failed request");
-  return normalizeIds(data);
+  return parseApiResponse(response);
 }
 
 /* =========================================================
@@ -497,45 +485,33 @@ export async function reproduceRun(id) {
 
 export async function getResearchOverview(workspaceId) {
   const response = await apiFetch(`${API_BASE_URL}/v1/workspaces/${workspaceId}/research/overview`);
-  const data = await response.json();
-  if (!response.ok) throw new Error(data.error?.message || data.message || "Failed request");
-  return normalizeIds(data);
+  return parseApiResponse(response);
 }
 
 export async function searchResearch(workspaceId, queryParams) {
   const params = new URLSearchParams(queryParams);
   const response = await apiFetch(`${API_BASE_URL}/v1/workspaces/${workspaceId}/research/search?${params.toString()}`);
-  const data = await response.json();
-  if (!response.ok) throw new Error(data.error?.message || data.message || "Failed request");
-  return normalizeIds(data);
+  return parseApiResponse(response);
 }
 
 export async function getProjectResearch(projectId) {
   const response = await apiFetch(`${API_BASE_URL}/v1/projects/${projectId}/research`);
-  const data = await response.json();
-  if (!response.ok) throw new Error(data.error?.message || data.message || "Failed request");
-  return normalizeIds(data);
+  return parseApiResponse(response);
 }
 
 export async function getExperimentResearch(experimentId) {
   const response = await apiFetch(`${API_BASE_URL}/v1/experiments/${experimentId}/research`);
-  const data = await response.json();
-  if (!response.ok) throw new Error(data.error?.message || data.message || "Failed request");
-  return normalizeIds(data);
+  return parseApiResponse(response);
 }
 
 export async function getResearchRecord(id) {
   const response = await apiFetch(`${API_BASE_URL}/v1/research-records/${id}`);
-  const data = await response.json();
-  if (!response.ok) throw new Error(data.error?.message || data.message || "Failed request");
-  return normalizeIds(data);
+  return parseApiResponse(response);
 }
 
 export async function getResearchRecordProvenance(id) {
   const response = await apiFetch(`${API_BASE_URL}/v1/research-records/${id}/provenance`);
-  const data = await response.json();
-  if (!response.ok) throw new Error(data.error?.message || data.message || "Failed request");
-  return normalizeIds(data);
+  return parseApiResponse(response);
 }
 
 export async function verifyResearchRecord(id) {
@@ -543,14 +519,10 @@ export async function verifyResearchRecord(id) {
     method: "POST",
     body: JSON.stringify({})
   });
-  const data = await response.json();
-  if (!response.ok) throw new Error(data.error?.message || data.message || "Failed request");
-  return normalizeIds(data);
+  return parseApiResponse(response);
 }
 
 export async function getVerificationHistory(id) {
   const response = await apiFetch(`${API_BASE_URL}/v1/research-records/${id}/verifications`);
-  const data = await response.json();
-  if (!response.ok) throw new Error(data.error?.message || data.message || "Failed request");
-  return normalizeIds(data);
+  return parseApiResponse(response);
 }

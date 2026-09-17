@@ -2,7 +2,7 @@
 
 ## Current runtime inputs
 
-OrbitGuard currently has no external runtime data source. The UI submits mission name, altitude, inclination, and duration; `Mission` persists them in MongoDB. All analysis, risk, and environment values are generated locally from those fields. They are not live telemetry, NASA data, tracked-object data, a space-weather feed, or an orbital catalog.
+OrbitForge currently has no external runtime data source. The UI submits mission name, altitude, inclination, and duration; `Mission` persists them in MongoDB. All analysis, risk, and environment values are generated locally from those fields. They are not live telemetry, NASA data, tracked-object data, a space-weather feed, or an orbital catalog.
 
 | Value | Runtime provenance | Qualification |
 | --- | --- | --- |
@@ -10,7 +10,7 @@ OrbitGuard currently has no external runtime data source. The UI submits mission
 | Radius, velocity, period | `orbitalAnalysis.service.js` | Circular two-body estimate. |
 | Risk score | `risk.service.js` | Project-defined rule score, capped at 100. |
 | Environment score | `spaceEnvironment.service.js` | Project-defined altitude/inclination heuristic. |
-| Assessments and decisions | MongoDB snapshots | OrbitGuard audit records, not independently verified operations records. |
+| Assessments and decisions | MongoDB snapshots | OrbitForge audit records, not independently verified operations records. |
 
 ## Scientific references, not feeds
 

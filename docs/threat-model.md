@@ -2,7 +2,7 @@
 
 ## Boundary
 
-OrbitGuard is intended for a local or controlled demo environment. Browser input, route/query values, and database identifiers are untrusted. MongoDB and the API are trusted deployment components only when the operator has separately secured network access and credentials.
+OrbitForge is intended for a local or controlled demo environment. Browser input, route/query values, and database identifiers are untrusted. MongoDB and the API are trusted deployment components only when the operator has separately secured network access and credentials.
 
 ## Implemented mitigations
 

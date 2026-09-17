@@ -4,6 +4,8 @@ import { useParams, Link } from "react-router-dom";
 import { getExperimentResearch, createExperimentRun, getDatasets, getDatasetVersions } from "../../services/api";
 import { useWorkspace } from "../../contexts/WorkspaceContext";
 import { RoleGuard } from "../../components/RoleGuard";
+import ErrorState from "../../components/ErrorState";
+import AiInsightPanel from "../../components/ai/AiInsightPanel";
 
 export default function ExperimentDetail() {
   const { activeWorkspaceId } = useWorkspace();
@@ -39,7 +41,7 @@ export default function ExperimentDetail() {
         throw new Error("Invalid response format");
       }
     } catch (err) {
-      setError(err.message || "Failed to fetch experiment details");
+      setError(err);
     } finally {
       setIsLoading(false);
     }
@@ -123,8 +125,8 @@ export default function ExperimentDetail() {
   };
 
   if (isLoading) return <div className="loading-state">Loading experiment details...</div>;
-  if (error) return <div className="error-state">Error: {error}</div>;
-  if (!experimentData || !experimentData.experiment) return <div className="error-state">Experiment not found</div>;
+  if (error) return <ErrorState error={error} onRetry={fetchExperimentResearch} />;
+  if (!experimentData || !experimentData.experiment) return <ErrorState error={{ status: 404, message: "Experiment not found" }} />;
 
   const experiment = experimentData.experiment;
   const project = experimentData.project;
@@ -250,7 +252,7 @@ export default function ExperimentDetail() {
         <h2 style={{ marginBottom: "1rem" }}>Run History</h2>
         {runs.length === 0 ? (
           <div className="empty-state" style={{ padding: "2rem", backgroundColor: "var(--bg-panel)", borderRadius: "8px", textAlign: "center" }}>
-            No runs executed yet.
+            No experiment runs are available yet.
           </div>
         ) : (
           <div className="run-table" style={{ width: "100%", overflowX: "auto" }}>
@@ -289,6 +291,10 @@ export default function ExperimentDetail() {
           </div>
         )}
       </section>
+      <div style={{ marginTop: "2rem" }}>
+        <AiInsightPanel role="RESEARCH_ASSISTANT" contextRefs={{ experimentId }} buttonLabel="Summarize Experiment" />
+      </div>
+
     </div>
   );
 }

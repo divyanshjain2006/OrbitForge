@@ -15,13 +15,16 @@ export default function WorkspaceSelector() {
     return <div className="workspace-selector empty">No workspaces found</div>;
   }
 
+  const activeWorkspaceName = workspaces.find(w => w.id === activeWorkspaceId)?.name;
+
   return (
-    <div className="workspace-selector" style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-      <label htmlFor="workspace-select" style={{ fontSize: "0.85rem", color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "1px" }}>Workspace:</label>
+    <div className="workspace-selector" style={{ display: "flex", alignItems: "center", gap: "0.5rem", minWidth: 0 }}>
+      <label htmlFor="workspace-select" className="workspace-label" style={{ fontSize: "0.85rem", color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "1px", flexShrink: 0 }}>Workspace:</label>
       <select
         id="workspace-select"
         value={activeWorkspaceId || ""}
         onChange={(e) => setWorkspace(e.target.value)}
+        title={activeWorkspaceName}
         style={{
           padding: "0.25rem 0.5rem",
           backgroundColor: "var(--bg-input)",
@@ -29,7 +32,11 @@ export default function WorkspaceSelector() {
           color: "var(--text-primary)",
           borderRadius: "4px",
           cursor: "pointer",
-          fontSize: "0.9rem"
+          fontSize: "0.9rem",
+          maxWidth: "200px",
+          textOverflow: "ellipsis",
+          overflow: "hidden",
+          whiteSpace: "nowrap"
         }}
       >
         {workspaces.map((ws) => (

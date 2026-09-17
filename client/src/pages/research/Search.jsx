@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { searchResearch } from "../../services/api";
 import { useWorkspace } from "../../contexts/WorkspaceContext";
+import ErrorState from "../../components/ErrorState";
 
 export default function ResearchSearch() {
   const { activeWorkspaceId } = useWorkspace();
@@ -40,7 +41,7 @@ export default function ResearchSearch() {
           throw new Error("Invalid response format");
         }
       } catch (err) {
-        setError(err.message || "Failed to search research");
+        setError(err);
       } finally {
         setIsLoading(false);
       }
@@ -126,7 +127,7 @@ export default function ResearchSearch() {
         </form>
       </div>
 
-      {error && <div className="error-state">Error: {error}</div>}
+      {error && <ErrorState error={error} />}
 
       <div className="search-results">
         {isLoading ? (

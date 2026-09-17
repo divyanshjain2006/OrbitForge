@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useWorkspace } from "../../contexts/WorkspaceContext";
 import { getProjects, createProject } from "../../services/api";
 import { RoleGuard } from "../../components/RoleGuard";
+import ErrorState from "../../components/ErrorState";
 
 export default function Projects() {
   const { activeWorkspaceId } = useWorkspace();
@@ -29,7 +30,7 @@ export default function Projects() {
           throw new Error("Invalid response format");
         }
       } catch (err) {
-        setError(err.message || "Failed to fetch projects");
+        setError(err);
       } finally {
         setIsLoading(false);
       }
@@ -65,7 +66,7 @@ export default function Projects() {
   };
 
   if (isLoading) return <div className="loading-state">Loading projects...</div>;
-  if (error) return <div className="error-state">Error: {error}</div>;
+  if (error) return <ErrorState error={error} />;
 
   return (
     <div className="research-page projects-page">
@@ -108,8 +109,8 @@ export default function Projects() {
 
       {projects.length === 0 ? (
         <div className="empty-state" style={{ padding: "3rem", textAlign: "center", backgroundColor: "var(--bg-panel)", border: "1px solid var(--border)", borderRadius: "8px" }}>
-          <h3>No Projects Found</h3>
-          <p style={{ color: "var(--text-secondary)" }}>Create a project to start running experiments.</p>
+          <h3>No Research Projects</h3>
+          <p style={{ color: "var(--text-secondary)" }}>No research projects exist in this workspace yet. Create a project to start running experiments.</p>
         </div>
       ) : (
         <div className="project-grid" style={{ display: "grid", gridTemplateColumns: "1fr", gap: "1rem" }}>

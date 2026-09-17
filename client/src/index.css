@@ -2320,3 +2320,41 @@ input:focus, select:focus, textarea:focus {
   --status-danger: var(--danger);
   --link: var(--accent-bright);
 }
+
+/* Responsive Navigation styles added for Phase 3.5 */
+@media (max-width: 768px) {
+  .nav-desktop-only {
+    display: none !important;
+  }
+  .nav-mobile-menu {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 1rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+  }
+  .workspace-label {
+    display: none !important;
+  }
+}
+
+@media (min-width: 769px) {
+  .nav-mobile-toggle {
+    display: none !important;
+  }
+  .nav-mobile-menu {
+    display: none !important;
+  }
+}
+
+/* Hash & ID formatting for responsiveness */
+.research-record-panel__meta-value--mono,
+.verification-detail__hash,
+.provenance-chain__step-meta,
+.hash-text,
+code, pre {
+  word-break: break-all;
+  overflow-wrap: break-word;
+}

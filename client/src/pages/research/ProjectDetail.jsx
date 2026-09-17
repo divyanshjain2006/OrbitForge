@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useParams, Link } from "react-router-dom";
 import { getProjectResearch, createExperiment } from "../../services/api";
 import { RoleGuard } from "../../components/RoleGuard";
+import ErrorState from "../../components/ErrorState";
 
 export default function ProjectDetail() {
   const { projectId } = useParams();
@@ -27,7 +28,7 @@ export default function ProjectDetail() {
         throw new Error("Invalid response format");
       }
     } catch (err) {
-      setError(err.message || "Failed to fetch project research");
+      setError(err);
     } finally {
       setIsLoading(false);
     }
@@ -64,8 +65,8 @@ export default function ProjectDetail() {
   };
 
   if (isLoading) return <div className="loading-state">Loading project details...</div>;
-  if (error) return <div className="error-state">Error: {error}</div>;
-  if (!projectData || !projectData.project) return <div className="error-state">Project not found</div>;
+  if (error) return <ErrorState error={error} onRetry={fetchProjectResearch} />;
+  if (!projectData || !projectData.project) return <ErrorState error={{ status: 404, message: "Project not found" }} />;
 
   const { project, experiments = [] } = projectData;
 
@@ -126,7 +127,7 @@ export default function ProjectDetail() {
         <h2 style={{ marginBottom: "1rem" }}>Experiments</h2>
         {experiments.length === 0 ? (
           <div className="empty-state" style={{ padding: "2rem", backgroundColor: "var(--bg-panel)", borderRadius: "8px", textAlign: "center" }}>
-            No experiments designed yet.
+            This project has no experiments yet. Design a new experiment to begin.
           </div>
         ) : (
           <div className="experiment-list" style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>

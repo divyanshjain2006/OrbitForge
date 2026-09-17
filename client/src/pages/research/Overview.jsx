@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { getResearchOverview } from "../../services/api";
 import { useWorkspace } from "../../contexts/WorkspaceContext";
+import ErrorState from "../../components/ErrorState";
 
 
 export default function ResearchOverview() {
@@ -13,7 +14,7 @@ export default function ResearchOverview() {
   useEffect(() => {
     async function fetchOverview() {
       if (!activeWorkspaceId) return;
-      
+
       setIsLoading(true);
       setError(null);
       try {
@@ -24,7 +25,7 @@ export default function ResearchOverview() {
           throw new Error("Invalid response format");
         }
       } catch (err) {
-        setError(err.message || "Failed to fetch research overview");
+        setError(err);
       } finally {
         setIsLoading(false);
       }
@@ -34,7 +35,7 @@ export default function ResearchOverview() {
   }, [activeWorkspaceId]);
 
   if (isLoading) return <div className="loading-state">Loading Research Lab...</div>;
-  if (error) return <div className="error-state">Error: {error}</div>;
+  if (error) return <ErrorState error={error} />;
   if (!overview) return null;
 
   const { counts = {}, integrityCounts = {}, recentActivity = {} } = overview;
@@ -52,6 +53,12 @@ export default function ResearchOverview() {
         {/* Workspace Overview */}
         <section className="overview-panel" style={{ backgroundColor: "var(--bg-panel)", border: "1px solid var(--border)", borderRadius: "8px", padding: "1.5rem" }}>
           <h2 style={{ margin: "0 0 1.5rem 0", fontSize: "1.2rem", borderBottom: "1px solid var(--border)", paddingBottom: "0.5rem" }}>Workspace Overview</h2>
+
+          {counts.projects === 0 && counts.datasets === 0 && (
+            <div style={{ backgroundColor: "rgba(255,255,255,0.05)", padding: "1rem", borderRadius: "4px", marginBottom: "1.5rem", color: "var(--text-secondary)", fontSize: "0.9rem" }}>
+              This workspace currently contains no research records. Create a project or ingest a dataset to begin.
+            </div>
+          )}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.5rem" }}>
             <Link to="/research/projects" style={{ textDecoration: "none", color: "inherit" }}>
               <div style={{ padding: "1rem", backgroundColor: "var(--bg-input)", borderRadius: "4px", textAlign: "center" }}>
@@ -59,7 +66,7 @@ export default function ResearchOverview() {
                 <div style={{ color: "var(--text-secondary)", fontSize: "0.9rem" }}>Projects</div>
               </div>
             </Link>
-            
+
             <Link to="/research/datasets" style={{ textDecoration: "none", color: "inherit" }}>
               <div style={{ padding: "1rem", backgroundColor: "var(--bg-input)", borderRadius: "4px", textAlign: "center" }}>
                 <div style={{ fontSize: "2rem", fontWeight: "bold", color: "var(--accent)", marginBottom: "0.25rem" }}>{counts.datasets || 0}</div>
@@ -87,7 +94,7 @@ export default function ResearchOverview() {
               <span style={{ fontWeight: "bold", color: "var(--status-success)" }}>VERIFIED</span>
               <span style={{ fontSize: "1.25rem", fontWeight: "bold" }}>{integrityCounts.verified || 0}</span>
             </div>
-            
+
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0.75rem", backgroundColor: "rgba(255, 193, 7, 0.05)", borderLeft: "3px solid var(--status-warning)", borderRadius: "0 4px 4px 0" }}>
               <span style={{ fontWeight: "bold", color: "var(--status-warning)" }}>NOT VERIFIED</span>
               <span style={{ fontSize: "1.25rem", fontWeight: "bold" }}>{integrityCounts.notVerified || 0}</span>
@@ -108,7 +115,7 @@ export default function ResearchOverview() {
 
       <section style={{ backgroundColor: "var(--bg-panel)", border: "1px solid var(--border)", borderRadius: "8px", padding: "1.5rem" }}>
         <h2 style={{ margin: "0 0 1.5rem 0", fontSize: "1.2rem", borderBottom: "1px solid var(--border)", paddingBottom: "0.5rem" }}>Recent Activity</h2>
-        
+
         {recentActivity.runs && recentActivity.runs.length > 0 ? (
           <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
             {recentActivity.runs.map(run => (
@@ -118,7 +125,7 @@ export default function ResearchOverview() {
                   <strong style={{ marginRight: "0.5rem" }}>Run executed</strong>
                   <Link to={`/research/runs/${run.id}`} style={{ color: "var(--link)" }}>{run.id}</Link>
                 </div>
-                <span style={{ 
+                <span style={{
                   fontSize: "0.75rem", padding: "0.15rem 0.4rem", borderRadius: "4px",
                   backgroundColor: run.status === "COMPLETED" ? "rgba(40, 167, 69, 0.1)" : run.status === "FAILED" ? "rgba(220, 53, 69, 0.1)" : "rgba(255, 193, 7, 0.1)",
                   color: run.status === "COMPLETED" ? "var(--status-success)" : run.status === "FAILED" ? "var(--status-danger)" : "var(--status-warning)"

@@ -1,6 +1,6 @@
 # Architecture and dependency graph
 
-OrbitGuard is a React/Vite client, Express API, and MongoDB persistence layer. The implementation graph is:
+OrbitForge is a React/Vite client, Express API, and MongoDB persistence layer. The implementation graph is:
 
 ```text
 Mission configuration (Mission)

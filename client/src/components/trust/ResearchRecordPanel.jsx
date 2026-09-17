@@ -70,6 +70,7 @@ function ResearchRecordPanel({
   missionId,
   missionName,
   analysisRunId,
+  experimentRunId,
   createdAt,
   evaluatedAt,
   modelVersion,
@@ -123,11 +124,21 @@ function ResearchRecordPanel({
           mono
         />
 
-        <MetaItem
-          label="Analysis Run"
-          value={analysisRunId}
-          mono
-        />
+        {analysisRunId && (
+          <MetaItem
+            label="Analysis Run"
+            value={analysisRunId}
+            mono
+          />
+        )}
+
+        {experimentRunId && (
+          <MetaItem
+            label="Experiment Run"
+            value={experimentRunId}
+            mono
+          />
+        )}
 
         <MetaItem
           label="Created"
@@ -195,14 +206,11 @@ function ResearchRecordPanel({
 
             <div className="research-record-panel__pending-text">
               <strong>
-                Verification Not Yet Available
+                Verification Not Yet Performed
               </strong>
 
               <p>
-                Research record persistence and SHA-256 integrity verification
-                are planned for a future backend milestone. When available,
-                the verification result, algorithm, and digest comparison will
-                appear here.
+                This research record has not been verified yet or the verification history is unavailable. Click "Verify Integrity" to run a cryptographic verification of this record.
               </p>
             </div>
           </div>

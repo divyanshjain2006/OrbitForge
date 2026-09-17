@@ -11,6 +11,7 @@ import {
   applyApprovedScenario
 } from "../services/api";
 
+import AiInsightPanel from "../components/ai/AiInsightPanel";
 import ScenarioSimulator from "../components/ScenarioSimulator";
 import OrbitVisualization from "../components/OrbitVisualization";
 
@@ -740,213 +741,6 @@ function Analysis() {
       </section>
 
       {/* =====================================================
-          INTELLIGENCE HERO
-          ===================================================== */}
-
-      <section className="intelligence-panel">
-        <div className="intelligence-header">
-          <div>
-            <span className="section-kicker">
-              DECISION-SUPPORT ASSESSMENT
-            </span>
-
-            <h2>
-              Mission Intelligence
-            </h2>
-          </div>
-
-          <span
-            className={`priority-badge ${priority.toLowerCase()}`}
-          >
-            {priority} PRIORITY
-          </span>
-        </div>
-
-        <p className="intelligence-summary">
-          {intelligence?.summary ||
-            "Mission intelligence is available for the current configuration."}
-        </p>
-
-        {intelligence?.decisionExplanation && (
-          <div className="decision-explanation">
-            <span className="metric-label">
-              DECISION EXPLANATION
-            </span>
-
-            <p>
-              {
-                intelligence.decisionExplanation
-              }
-            </p>
-          </div>
-        )}
-
-        <div className="intelligence-grid">
-
-          <article className="intelligence-card">
-            <span className="metric-label">
-              MISSION READINESS
-            </span>
-
-            <strong className="intelligence-card-title">
-              {readiness?.label ||
-                "Baseline configuration"}
-            </strong>
-
-            <p>
-              {readiness?.explanation ||
-                "No additional readiness information is available."}
-            </p>
-          </article>
-
-          <article className="intelligence-card">
-            <span className="metric-label">
-              PRIMARY CONCERN
-            </span>
-
-            <strong className="intelligence-card-title">
-              {primaryConcern.title}
-            </strong>
-
-            <p>
-              {primaryConcern.explanation}
-            </p>
-
-            {primaryConcern.severity && (
-              <span
-                className={`severity-badge ${String(
-                  primaryConcern.severity
-                ).toLowerCase()}`}
-              >
-                {primaryConcern.severity}
-              </span>
-            )}
-          </article>
-
-        </div>
-
-        {intelligence?.operationalPosture && (
-          <div className="operational-posture">
-            <div>
-              <span className="metric-label">
-                MODEL POSTURE
-              </span>
-
-              <strong>
-                {
-                  intelligence
-                    .operationalPosture
-                    .label
-                }
-              </strong>
-            </div>
-
-            {intelligence?.ruleCoverage && (
-              <span className="rule-coverage-badge">
-                {intelligence.ruleCoverage}{" "}
-                RULE COVERAGE
-              </span>
-            )}
-          </div>
-        )}
-      </section>
-
-      {/* =====================================================
-          DECISION SNAPSHOT
-          ===================================================== */}
-
-      <section className="analysis-risk-grid">
-
-        <article className="risk-score-card">
-          <span className="metric-label">
-            MISSION RISK
-          </span>
-
-          <div className="risk-score">
-            {risk?.score ?? 0}
-            <span>/100</span>
-          </div>
-
-          <span
-            className={`risk-badge ${riskLevel}`}
-          >
-            {risk?.level || "LOW"} RISK
-          </span>
-
-          <p className="card-support-text">
-            Deterministic assessment of the
-            current mission configuration.
-          </p>
-        </article>
-
-        <article className="risk-summary-card">
-          <span className="metric-label">
-            MISSION READINESS
-          </span>
-
-          <strong className="large-number">
-            {readiness?.label ||
-              "Baseline"}
-          </strong>
-
-          <p>
-            {readiness?.explanation ||
-              "No additional readiness information is available."}
-          </p>
-        </article>
-
-        <article className="risk-summary-card">
-          <span className="metric-label">
-            ENVIRONMENT
-          </span>
-
-          <strong className="large-number">
-            {environmentScore}
-            <span className="number-suffix">
-              /100
-            </span>
-          </strong>
-
-          <span
-            className={`risk-badge ${environmentLevel}`}
-          >
-            {environment?.level || "LOW"}
-          </span>
-
-          <p>
-            {environmentPosture}.
-            Environmental exposure is modeled from
-            orbital altitude and inclination.
-          </p>
-        </article>
-
-        <article className="risk-summary-card">
-          <span className="metric-label">
-            PRIMARY CONCERN
-          </span>
-
-          <strong className="large-number">
-            {primaryConcern.title}
-          </strong>
-
-          {primaryConcern.severity && (
-            <span
-              className={`severity-badge ${String(
-                primaryConcern.severity
-              ).toLowerCase()}`}
-            >
-              {primaryConcern.severity}
-            </span>
-          )}
-
-          <p>
-            {primaryConcern.explanation}
-          </p>
-        </article>
-
-      </section>
-
-      {/* =====================================================
           ORBITAL CONFIGURATION
           ===================================================== */}
 
@@ -954,15 +748,15 @@ function Analysis() {
         <div className="panel-header">
           <div>
             <span className="section-kicker">
-              ORBITAL CONFIGURATION
+              MISSION CONFIGURATION (INPUT)
             </span>
 
             <h2>
-              Mission Parameters
+              Mission Configuration
             </h2>
 
             <p className="muted">
-              Current configuration used by the
+              User-defined parameters used by the
               OrbitForge analysis engine.
             </p>
           </div>
@@ -1004,34 +798,6 @@ function Analysis() {
       </section>
 
       {/* =====================================================
-          ORBIT VISUALIZATION
-          ===================================================== */}
-
-      <OrbitVisualization
-        altitude={
-          Number(altitude) || 0
-        }
-        inclination={
-          Number(inclination) || 0
-        }
-        velocity={
-          Number(
-            orbitalVelocity
-          ) || 0
-        }
-        period={
-          Number(
-            orbitalPeriod
-          ) || 0
-        }
-        revolutionsPerDay={
-          Number(
-            revolutionsPerDay
-          ) || 0
-        }
-      />
-
-      {/* =====================================================
           ORBITAL MECHANICS
           ===================================================== */}
 
@@ -1039,12 +805,13 @@ function Analysis() {
         <div className="panel-header">
           <div>
             <span className="section-kicker">
-              ORBITAL MECHANICS
+              ORBITAL ANALYSIS (MODEL)
             </span>
 
             <h2>
               Orbital Characteristics
             </h2>
+            <p className="muted" style={{ marginTop: "0.5rem" }}>Methodology: Deterministic circular two-body estimate.</p>
           </div>
         </div>
 
@@ -1106,6 +873,213 @@ function Analysis() {
       </section>
 
       {/* =====================================================
+          ORBIT VISUALIZATION
+          ===================================================== */}
+
+      <OrbitVisualization
+        altitude={
+          Number(altitude) || 0
+        }
+        inclination={
+          Number(inclination) || 0
+        }
+        velocity={
+          Number(
+            orbitalVelocity
+          ) || 0
+        }
+        period={
+          Number(
+            orbitalPeriod
+          ) || 0
+        }
+        revolutionsPerDay={
+          Number(
+            revolutionsPerDay
+          ) || 0
+        }
+      />
+
+      {/* =====================================================
+          SPACE ENVIRONMENT
+          ===================================================== */}
+
+      <section className="panel environment-panel">
+        <div className="panel-header">
+          <div>
+            <span className="section-kicker">
+              ENVIRONMENTAL ASSESSMENT (OUTPUT)
+            </span>
+
+            <h2>
+              Environmental Exposure
+            </h2>
+
+            <p className="muted">
+              Modeled environmental conditions based
+              on the current orbital configuration.
+            </p>
+          </div>
+
+          <span
+            className={`risk-badge ${environmentLevel}`}
+          >
+            {environment?.level || "LOW"}
+          </span>
+        </div>
+
+        <div className="environment-overview">
+
+          {/* Environment score */}
+
+          <div className="environment-score-card">
+            <span className="metric-label">
+              ENVIRONMENT SCORE
+            </span>
+
+            <strong>
+              {environmentScore}
+              <small>/100</small>
+            </strong>
+
+            <span className="muted">
+              {environmentPosture}
+            </span>
+
+            <p className="card-support-text">
+              This score represents modeled exposure
+              from the selected orbital altitude and
+              inclination.
+            </p>
+          </div>
+
+          {/* Environmental factors */}
+
+          <div className="environment-factor-grid">
+
+            {environmentFactors.length === 0 ? (
+              <div className="environment-clear">
+                <span className="metric-label">
+                  ENVIRONMENT STATUS
+                </span>
+
+                <h3>
+                  Baseline environmental exposure
+                </h3>
+
+                <p>
+                  No elevated environmental factors
+                  were identified for the current
+                  orbital configuration.
+                </p>
+
+                <span className="environment-status">
+                  BASELINE
+                </span>
+              </div>
+            ) : (
+              environmentFactors.map(
+                (factor, index) => {
+                  const factorLevel =
+                    String(
+                      factor.level || "LOW"
+                    ).toLowerCase();
+
+                  const factorScore =
+                    Number(factor.score) || 0;
+
+                  return (
+                    <article
+                      className="environment-factor"
+                      key={`${factor.category}-${index}`}
+                    >
+                      <div className="environment-factor-header">
+
+                        <div>
+                          <span className="metric-label">
+                            {factor.category}
+                          </span>
+
+                          <h3>
+                            {factor.title}
+                          </h3>
+                        </div>
+
+                        <span
+                          className={`severity-badge ${factorLevel}`}
+                        >
+                          {String(
+                            factor.level || "LOW"
+                          ).toUpperCase()}
+                        </span>
+                      </div>
+
+                      <div className="environment-factor-score">
+                        <span>
+                          Contribution
+                        </span>
+
+                        <strong>
+                          +{factorScore} points
+                        </strong>
+                      </div>
+
+                      <p>
+                        {factor.explanation}
+                      </p>
+
+                      {factor.signal && (
+                        <span className="risk-signal">
+                          SIGNAL: {factor.signal}
+                        </span>
+                      )}
+                    </article>
+                  );
+                }
+              )
+            )}
+
+          </div>
+        </div>
+
+        {/* Methodology */}
+
+        {environmentMethodology?.description && (
+          <div className="environment-methodology">
+
+            <div>
+              <span className="metric-label">
+                ASSESSMENT METHODOLOGY
+              </span>
+
+              <p>
+                {environmentMethodology.description}
+              </p>
+            </div>
+
+            {environmentMethodology.version && (
+              <span className="methodology-version">
+                MODEL{" "}
+                {environmentMethodology.version}
+              </span>
+            )}
+          </div>
+        )}
+
+        <div className="environment-disclaimer">
+          <span>MODEL LIMITATION</span>
+
+          <p>
+            This is a modeled environmental assessment,
+            not a live space-weather feed. Actual
+            environmental conditions may vary and should
+            be validated against appropriate operational
+            data before mission decisions.
+          </p>
+        </div>
+      </section>
+
+      {/* =====================================================
           RISK FACTORS
           ===================================================== */}
 
@@ -1113,7 +1087,7 @@ function Analysis() {
         <div className="panel-header">
           <div>
             <span className="section-kicker">
-              RISK ASSESSMENT
+              RISK ASSESSMENT (HEURISTIC)
             </span>
 
             <h2>
@@ -1313,182 +1287,214 @@ function Analysis() {
       </section>
 
       {/* =====================================================
-          SPACE ENVIRONMENT
+          INTELLIGENCE HERO
           ===================================================== */}
 
-      <section className="panel environment-panel">
-        <div className="panel-header">
+      <section className="intelligence-panel">
+        <div className="intelligence-header">
           <div>
             <span className="section-kicker">
-              SPACE ENVIRONMENT
+              MISSION INTELLIGENCE (AI EXPLANATION)
             </span>
 
             <h2>
-              Environmental Exposure
+              Mission Intelligence
             </h2>
+          </div>
 
-            <p className="muted">
-              Modeled environmental conditions based
-              on the current orbital configuration.
+          <span
+            className={`priority-badge ${priority.toLowerCase()}`}
+          >
+            {priority} PRIORITY
+          </span>
+        </div>
+
+        <p className="intelligence-summary">
+          {intelligence?.summary ||
+            "Mission intelligence is available for the current configuration."}
+        </p>
+
+        {intelligence?.decisionExplanation && (
+          <div className="decision-explanation">
+            <span className="metric-label">
+              DECISION EXPLANATION
+            </span>
+
+            <p>
+              {
+                intelligence.decisionExplanation
+              }
             </p>
           </div>
+        )}
+
+        <div className="intelligence-grid">
+
+          <article className="intelligence-card">
+            <span className="metric-label">
+              MISSION READINESS
+            </span>
+
+            <strong className="intelligence-card-title">
+              {readiness?.label ||
+                "Baseline configuration"}
+            </strong>
+
+            <p>
+              {readiness?.explanation ||
+                "No additional readiness information is available."}
+            </p>
+          </article>
+
+          <article className="intelligence-card">
+            <span className="metric-label">
+              PRIMARY CONCERN
+            </span>
+
+            <strong className="intelligence-card-title">
+              {primaryConcern.title}
+            </strong>
+
+            <p>
+              {primaryConcern.explanation}
+            </p>
+
+            {primaryConcern.severity && (
+              <span
+                className={`severity-badge ${String(
+                  primaryConcern.severity
+                ).toLowerCase()}`}
+              >
+                {primaryConcern.severity}
+              </span>
+            )}
+          </article>
+
+        </div>
+
+        {intelligence?.operationalPosture && (
+          <div className="operational-posture">
+            <div>
+              <span className="metric-label">
+                MODEL POSTURE
+              </span>
+
+              <strong>
+                {
+                  intelligence
+                    .operationalPosture
+                    .label
+                }
+              </strong>
+            </div>
+
+            {intelligence?.ruleCoverage && (
+              <span className="rule-coverage-badge">
+                {intelligence.ruleCoverage}{" "}
+                RULE COVERAGE
+              </span>
+            )}
+          </div>
+        )}
+
+        <div style={{ marginTop: "2rem" }}>
+          <AiInsightPanel role="MISSION_ANALYST" contextRefs={{ missionId }} buttonLabel="Generate AI Mission Analysis" />
+        </div>
+      </section>
+
+      {/* =====================================================
+          DECISION SUPPORT (USER ACTION)
+          ===================================================== */}
+
+      <section className="analysis-risk-grid">
+
+        <article className="risk-score-card">
+          <span className="metric-label">
+            MISSION RISK
+          </span>
+
+          <div className="risk-score">
+            {risk?.score ?? 0}
+            <span>/100</span>
+          </div>
+
+          <span
+            className={`risk-badge ${riskLevel}`}
+          >
+            {risk?.level || "LOW"} RISK
+          </span>
+
+          <p className="card-support-text">
+            Deterministic assessment of the
+            current mission configuration.
+          </p>
+        </article>
+
+        <article className="risk-summary-card">
+          <span className="metric-label">
+            MISSION READINESS
+          </span>
+
+          <strong className="large-number">
+            {readiness?.label ||
+              "Baseline"}
+          </strong>
+
+          <p>
+            {readiness?.explanation ||
+              "No additional readiness information is available."}
+          </p>
+        </article>
+
+        <article className="risk-summary-card">
+          <span className="metric-label">
+            ENVIRONMENT
+          </span>
+
+          <strong className="large-number">
+            {environmentScore}
+            <span className="number-suffix">
+              /100
+            </span>
+          </strong>
 
           <span
             className={`risk-badge ${environmentLevel}`}
           >
             {environment?.level || "LOW"}
           </span>
-        </div>
-
-        <div className="environment-overview">
-
-          {/* Environment score */}
-
-          <div className="environment-score-card">
-            <span className="metric-label">
-              ENVIRONMENT SCORE
-            </span>
-
-            <strong>
-              {environmentScore}
-              <small>/100</small>
-            </strong>
-
-            <span className="muted">
-              {environmentPosture}
-            </span>
-
-            <p className="card-support-text">
-              This score represents modeled exposure
-              from the selected orbital altitude and
-              inclination.
-            </p>
-          </div>
-
-          {/* Environmental factors */}
-
-          <div className="environment-factor-grid">
-
-            {environmentFactors.length === 0 ? (
-              <div className="environment-clear">
-                <span className="metric-label">
-                  ENVIRONMENT STATUS
-                </span>
-
-                <h3>
-                  Baseline environmental exposure
-                </h3>
-
-                <p>
-                  No elevated environmental factors
-                  were identified for the current
-                  orbital configuration.
-                </p>
-
-                <span className="environment-status">
-                  BASELINE
-                </span>
-              </div>
-            ) : (
-              environmentFactors.map(
-                (factor, index) => {
-                  const factorLevel =
-                    String(
-                      factor.level || "LOW"
-                    ).toLowerCase();
-
-                  const factorScore =
-                    Number(factor.score) || 0;
-
-                  return (
-                    <article
-                      className="environment-factor"
-                      key={`${factor.category}-${index}`}
-                    >
-                      <div className="environment-factor-header">
-
-                        <div>
-                          <span className="metric-label">
-                            {factor.category}
-                          </span>
-
-                          <h3>
-                            {factor.title}
-                          </h3>
-                        </div>
-
-                        <span
-                          className={`severity-badge ${factorLevel}`}
-                        >
-                          {String(
-                            factor.level || "LOW"
-                          ).toUpperCase()}
-                        </span>
-                      </div>
-
-                      <div className="environment-factor-score">
-                        <span>
-                          Contribution
-                        </span>
-
-                        <strong>
-                          +{factorScore} points
-                        </strong>
-                      </div>
-
-                      <p>
-                        {factor.explanation}
-                      </p>
-
-                      {factor.signal && (
-                        <span className="risk-signal">
-                          SIGNAL: {factor.signal}
-                        </span>
-                      )}
-                    </article>
-                  );
-                }
-              )
-            )}
-
-          </div>
-        </div>
-
-        {/* Methodology */}
-
-        {environmentMethodology?.description && (
-          <div className="environment-methodology">
-
-            <div>
-              <span className="metric-label">
-                ASSESSMENT METHODOLOGY
-              </span>
-
-              <p>
-                {environmentMethodology.description}
-              </p>
-            </div>
-
-            {environmentMethodology.version && (
-              <span className="methodology-version">
-                MODEL{" "}
-                {environmentMethodology.version}
-              </span>
-            )}
-          </div>
-        )}
-
-        <div className="environment-disclaimer">
-          <span>MODEL LIMITATION</span>
 
           <p>
-            This is a modeled environmental assessment,
-            not a live space-weather feed. Actual
-            environmental conditions may vary and should
-            be validated against appropriate operational
-            data before mission decisions.
+            {environmentPosture}.
+            Environmental exposure is modeled from
+            orbital altitude and inclination.
           </p>
-        </div>
+        </article>
+
+        <article className="risk-summary-card">
+          <span className="metric-label">
+            PRIMARY CONCERN
+          </span>
+
+          <strong className="large-number">
+            {primaryConcern.title}
+          </strong>
+
+          {primaryConcern.severity && (
+            <span
+              className={`severity-badge ${String(
+                primaryConcern.severity
+              ).toLowerCase()}`}
+            >
+              {primaryConcern.severity}
+            </span>
+          )}
+
+          <p>
+            {primaryConcern.explanation}
+          </p>
+        </article>
+
       </section>
 
       {/* =====================================================

@@ -1,6 +1,6 @@
-# OrbitGuard
+# OrbitForge
 
-OrbitGuard is a full-stack mission-decision workspace for low-Earth-orbit (LEO) missions. It lets operators create missions, assess orbital and environmental risk, simulate alternative configurations, and record explainable approval decisions.
+OrbitForge is a full-stack mission-decision workspace for low-Earth-orbit (LEO) missions. It lets operators create missions, assess orbital and environmental risk, simulate alternative configurations, and record explainable approval decisions.
 
 ## What it does
 
@@ -90,7 +90,7 @@ npm test
 
 ## Project status
 
-OrbitGuard is an active prototype. Contributions that improve validation, model calibration, observability, accessibility, test coverage, or deployment readiness are especially welcome.
+OrbitForge is an active prototype. Contributions that improve validation, model calibration, observability, accessibility, test coverage, or deployment readiness are especially welcome.
 
 ## Documentation
 

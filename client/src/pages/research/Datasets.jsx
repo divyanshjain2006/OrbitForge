@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useWorkspace } from "../../contexts/WorkspaceContext";
 import { getDatasets } from "../../services/api";
+import ErrorState from "../../components/ErrorState";
 
 export default function Datasets() {
   const { activeWorkspaceId } = useWorkspace();
@@ -23,7 +24,7 @@ export default function Datasets() {
           throw new Error("Invalid response format");
         }
       } catch (err) {
-        setError(err.message || "Failed to fetch datasets");
+        setError(err);
       } finally {
         setIsLoading(false);
       }
@@ -37,7 +38,7 @@ export default function Datasets() {
   }
 
   if (error) {
-    return <div className="error-state">Error: {error}</div>;
+    return <ErrorState error={error} />;
   }
 
   return (

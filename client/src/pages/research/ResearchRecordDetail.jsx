@@ -5,6 +5,8 @@ import { getResearchRecord, getResearchRecordProvenance, verifyResearchRecord, g
 import { IntegrityBadge, ResearchRecordPanel, ProvenanceChain } from "../../components/trust";
 import { RoleGuard } from "../../components/RoleGuard";
 import JsonViewer from "../../components/JsonViewer";
+import ErrorState from "../../components/ErrorState";
+import AiInsightPanel from "../../components/ai/AiInsightPanel";
 
 export default function ResearchRecordDetail() {
   const { recordId } = useParams();
@@ -55,7 +57,7 @@ export default function ResearchRecordDetail() {
         // Verification history may be empty
       }
     } catch (err) {
-      setError(err.message || "Failed to fetch research record details");
+      setError(err);
     } finally {
       setIsLoading(false);
     }
@@ -84,8 +86,8 @@ export default function ResearchRecordDetail() {
   };
 
   if (isLoading) return <div className="loading-state">Loading research record...</div>;
-  if (error) return <div className="error-state">Error: {error}</div>;
-  if (!researchRecord) return <div className="error-state">Research record not found</div>;
+  if (error) return <ErrorState error={error} onRetry={fetchRecordDetails} />;
+  if (!researchRecord) return <ErrorState error={{ status: 404, message: "Research record not found" }} />;
 
   // Determine the integrity status from backend response
   const integrityStatus = integrity?.status || "UNAVAILABLE";
@@ -183,6 +185,10 @@ export default function ResearchRecordDetail() {
           </div>
         </section>
       )}
+
+      <div style={{ marginTop: "2rem" }}>
+        <AiInsightPanel role="SCIENTIFIC_EXPLAINER" contextRefs={{ researchRecordId: recordId }} buttonLabel="Explain Scientific Result" />
+      </div>
 
       {/* Verification History */}
       {verifications.length > 0 && (

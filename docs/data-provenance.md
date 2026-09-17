@@ -2,7 +2,7 @@
 
 ## Implemented
 
-OrbitGuard has no external runtime data provider. Every analysis begins with a user-entered mission configuration stored in MongoDB. Therefore every returned analytical value is labelled by its generation mode rather than presented as measured or live.
+OrbitForge has no external runtime data provider. Every analysis begins with a user-entered mission configuration stored in MongoDB. Therefore every returned analytical value is labelled by its generation mode rather than presented as measured or live.
 
 | Output | Provenance status | Source / version |
 | --- | --- | --- |
@@ -15,4 +15,4 @@ Each newly saved `Assessment` records a UUID `runId`, `evaluatedAt`, component m
 
 ## Not implemented
 
-There is no `LIVE`, `VERIFIED`, `CACHED`, or `STALE` data status because OrbitGuard does not fetch external data. There is no dataset version, record identifier, source timestamp, coordinate frame, covariance, or telemetry provenance to report. Future providers must validate and normalize responses before storage, retain source URL/organization/retrieval time/units/transformations, and visibly mark cache or fallback use. They must never silently replace unavailable live data with modeled output.
+There is no `LIVE`, `VERIFIED`, `CACHED`, or `STALE` data status because OrbitForge does not fetch external data. There is no dataset version, record identifier, source timestamp, coordinate frame, covariance, or telemetry provenance to report. Future providers must validate and normalize responses before storage, retain source URL/organization/retrieval time/units/transformations, and visibly mark cache or fallback use. They must never silently replace unavailable live data with modeled output.

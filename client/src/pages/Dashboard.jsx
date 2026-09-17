@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 
 import {
   deleteMission,
@@ -72,6 +73,7 @@ function getRiskClass(level) {
 
 function Dashboard() {
   const navigate = useNavigate();
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
 
   const [missions, setMissions] = useState([]);
   const [intelligence, setIntelligence] = useState({});
@@ -84,6 +86,10 @@ function Dashboard() {
     let cancelled = false;
 
     async function fetchDashboardData() {
+      if (!isAuthenticated) {
+        setLoading(false);
+        return;
+      }
       try {
         setLoading(true);
         setError("");
@@ -156,12 +162,14 @@ function Dashboard() {
       }
     }
 
-    fetchDashboardData();
+    if (!authLoading) {
+      fetchDashboardData();
+    }
 
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [isAuthenticated, authLoading]);
 
   async function refreshMissions() {
     try {
@@ -448,7 +456,8 @@ function Dashboard() {
 
         {!loading &&
           !error &&
-          missions.length === 0 && (
+          missions.length === 0 &&
+          isAuthenticated && (
             <div className="empty-state">
               <h3>No missions registered</h3>
 
@@ -462,6 +471,25 @@ function Dashboard() {
                 className="button button-primary"
               >
                 Create Your First Mission
+              </Link>
+            </div>
+          )}
+
+        {!loading &&
+          !error &&
+          !isAuthenticated && (
+            <div className="empty-state">
+              <h3>Login Required</h3>
+
+              <p>
+                Please login to view your mission fleet and access orbital analysis tools.
+              </p>
+
+              <Link
+                to="/login"
+                className="button button-primary"
+              >
+                Login
               </Link>
             </div>
           )}

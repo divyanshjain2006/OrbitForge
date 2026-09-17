@@ -1,8 +1,8 @@
 # NASA process mapping
 
-OrbitGuard is inspired by the general pattern of decision support, scenario comparison, and record keeping. It does not reproduce NASA’s operational systems and has no NASA affiliation, endorsement, certification, or data connection.
+OrbitForge is inspired by the general pattern of decision support, scenario comparison, and record keeping. It does not reproduce NASA’s operational systems and has no NASA affiliation, endorsement, certification, or data connection.
 
-| Operational concept | OrbitGuard status | What OrbitGuard actually has | What is missing |
+| Operational concept | OrbitForge status | What OrbitForge actually has | What is missing |
 | --- | --- | --- | --- |
 | Mission configuration trade study | Simplified | Manual altitude/inclination/duration scenarios | Mission constraints, trajectory design, validated optimization. |
 | Orbital analysis | Simplified | Circular two-body values from altitude | State vector, perturbations, propagation, maneuver modeling. |
@@ -14,4 +14,4 @@ OrbitGuard is inspired by the general pattern of decision support, scenario comp
 
 NASA describes conjunction assessment as screening predicted positions against known objects, followed by risk assessment and possible mitigation. It distinguishes a close approach from collision risk; Pc relies on ephemeris uncertainty [NASA CARA](https://www.nasa.gov/cara/). NASA’s handbook identifies covariance as the stochastic characterization of errors in a state estimate [CA Best Practices Handbook](https://www.nasa.gov/wp-content/uploads/2024/01/oce-51-nasa-spacecraft-conjunction-assessment.pdf). ESA likewise describes operational services using orbit files, environmental data, object properties, uncertainty, miss distance, and collision probability [ESA](https://www.esa.int/content/view/full/413425).
 
-Therefore, “close approach” and “Pc” are not interchangeable terms and neither is calculated by OrbitGuard.
+Therefore, “close approach” and “Pc” are not interchangeable terms and neither is calculated by OrbitForge.

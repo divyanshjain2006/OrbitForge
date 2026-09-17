@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { getDatasetVersionById } from "../../services/api";
 import JsonViewer from "../../components/JsonViewer";
+import ErrorState from "../../components/ErrorState";
 
 export default function DatasetVersionDetail() {
   const { datasetId, versionId } = useParams();
@@ -21,7 +22,7 @@ export default function DatasetVersionDetail() {
           throw new Error("Invalid response format");
         }
       } catch (err) {
-        setError(err.message || "Failed to fetch dataset version");
+        setError(err);
       } finally {
         setIsLoading(false);
       }
@@ -31,8 +32,8 @@ export default function DatasetVersionDetail() {
   }, [versionId]);
 
   if (isLoading) return <div className="loading-state">Loading dataset version...</div>;
-  if (error) return <div className="error-state">Error: {error}</div>;
-  if (!version) return <div className="error-state">Dataset version not found</div>;
+  if (error) return <ErrorState error={error} />;
+  if (!version) return <ErrorState error={{ status: 404, message: "Dataset version not found" }} />;
 
   return (
     <div className="research-page dataset-version-detail">

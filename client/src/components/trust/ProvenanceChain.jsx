@@ -120,6 +120,7 @@ function StepConnector({ dotState }) {
 function ProvenanceChain({
   missionName,
   analysisRunId,
+  experimentRunId,
   modelVersion,
   canonicalizationVersion,
   integrityHash,
@@ -151,8 +152,8 @@ function ProvenanceChain({
           /* Inject live data into specific steps */
           let meta = null;
 
-          if (step.key === "analysis" && analysisRunId) {
-            meta = `Run ID: ${analysisRunId}`;
+          if (step.key === "analysis" && (analysisRunId || experimentRunId)) {
+            meta = `Run ID: ${analysisRunId || experimentRunId}`;
           }
 
           if (step.key === "models" && modelVersion) {

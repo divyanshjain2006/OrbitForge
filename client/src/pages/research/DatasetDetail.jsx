@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { getDatasetById, ingestDataset, getDatasetVersions } from "../../services/api";
 import { RoleGuard } from "../../components/RoleGuard";
+import ErrorState from "../../components/ErrorState";
 
 export default function DatasetDetail() {
   const { id } = useParams();
@@ -29,7 +30,7 @@ export default function DatasetDetail() {
           setVersions(versionsRes.versions);
         }
       } catch (err) {
-        setError(err.message || "Failed to fetch dataset details");
+        setError(err);
       } finally {
         setIsLoading(false);
       }
@@ -59,8 +60,8 @@ export default function DatasetDetail() {
   };
 
   if (isLoading) return <div className="loading-state">Loading dataset details...</div>;
-  if (error) return <div className="error-state">Error: {error}</div>;
-  if (!dataset) return <div className="error-state">Dataset not found</div>;
+  if (error) return <ErrorState error={error} />;
+  if (!dataset) return <ErrorState error={{ status: 404, message: "Dataset not found" }} />;
 
   return (
     <div className="research-page dataset-detail">

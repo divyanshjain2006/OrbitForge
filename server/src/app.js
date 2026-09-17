@@ -17,6 +17,7 @@ import workspaceRoutes from "./routes/workspace.routes.js";
 import datasetRoutes from "./routes/dataset.routes.js";
 import projectExperimentRoutes from "./routes/projectExperiment.routes.js";
 import researchWorkspaceRoutes from "./routes/researchWorkspace.routes.js";
+import aiRoutes from "./routes/ai.routes.js";
 import { localRateLimit, requestContext, securityHeaders } from "./middleware/security.js";
 
 const sourceDirectory = dirname(fileURLToPath(import.meta.url));
@@ -138,6 +139,8 @@ app.use("/api/environment", environmentRoutes);
 app.use("/api/assessments", assessmentRoutes);
 app.use("/api/decisions", decisionRoutes);
 
+
+
 // Additive versioned trust APIs. Existing /api analysis behavior is preserved.
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1", trustRoutes);
@@ -145,6 +148,7 @@ app.use("/api/v1/workspaces", workspaceRoutes);
 app.use("/api/v1", datasetRoutes);
 app.use("/api/v1", projectExperimentRoutes);
 app.use("/api/v1", researchWorkspaceRoutes);
+app.use("/api/v1", aiRoutes);
 /* =========================================================
    404 HANDLER
    ========================================================= */

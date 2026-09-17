@@ -15,4 +15,4 @@
 
 - ESA Space Debris Office, [*Reentry and collision avoidance*](https://www.esa.int/content/view/full/413425): operational orbit files, uncertainty, collision probability, and maneuver screening.
 
-Sources are scientific references, not runtime integrations, endorsements, or partnerships. NASA CARA’s [FAQ](https://www.nasa.gov/cara/frequently-asked-questions/) specifically describes Pc inputs as miss distance, event covariance, and hard-body radius—inputs OrbitGuard does not have.
+Sources are scientific references, not runtime integrations, endorsements, or partnerships. NASA CARA’s [FAQ](https://www.nasa.gov/cara/frequently-asked-questions/) specifically describes Pc inputs as miss distance, event covariance, and hard-body radius—inputs OrbitForge does not have.

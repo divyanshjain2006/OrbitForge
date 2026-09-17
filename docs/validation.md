@@ -2,7 +2,7 @@
 
 ## Deterministic calculation check
 
-The service test `server/test/scientific-validation.test.js` derives a 400 km circular-orbit reference directly from the constants used by OrbitGuard: `R = 6378.137 km`, `μ = 398600.4418 km³/s²`, and `r = R + 400 km`. It accepts these rounded outputs:
+The service test `server/test/scientific-validation.test.js` derives a 400 km circular-orbit reference directly from the constants used by OrbitForge: `R = 6378.137 km`, `μ = 398600.4418 km³/s²`, and `r = R + 400 km`. It accepts these rounded outputs:
 
 | Quantity | Expected | Acceptance criterion | Basis |
 | --- | ---: | --- | --- |

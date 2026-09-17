@@ -11,7 +11,16 @@ const INGESTION_COOLDOWN_MS = 30000;
 export function createDataset(input) {
   return Dataset.create({ ...input, source: "CNEOS_SCOUT", sourceType: "NASA_API", sourceUri: "https://ssd-api.jpl.nasa.gov/scout.api", datasetType: "NEO_HAZARD_ASSESSMENT" });
 }
-export function listDatasets(workspaceId) { return Dataset.find({ workspaceId }).sort({ createdAt: -1 }).lean(); }
+export async function listDatasets(workspaceId) {
+  const datasets = await Dataset.find({ workspaceId }).sort({ createdAt: -1 }).lean();
+  const datasetIds = datasets.map(d => d._id);
+  const versionCounts = await DatasetVersion.aggregate([
+    { $match: { datasetId: { $in: datasetIds } } },
+    { $group: { _id: "$datasetId", count: { $sum: 1 } } }
+  ]);
+  const countMap = new Map(versionCounts.map(vc => [String(vc._id), vc.count]));
+  return datasets.map(d => ({ ...d, versionCount: countMap.get(String(d._id)) || 0 }));
+}
 export function getDataset(id) { return Dataset.findById(id).lean(); }
 export function listDatasetVersions(datasetId) { return DatasetVersion.find({ datasetId }).sort({ version: -1 }).lean(); }
 export function getDatasetVersion(id) { return DatasetVersion.findById(id).lean(); }

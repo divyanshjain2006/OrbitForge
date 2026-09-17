@@ -5,6 +5,7 @@ import { getExperimentRunById, reproduceRun } from "../../services/api";
 import { RoleGuard } from "../../components/RoleGuard";
 import { IntegrityBadge } from "../../components/trust";
 import JsonViewer from "../../components/JsonViewer";
+import ErrorState from "../../components/ErrorState";
 
 export default function RunDetail() {
   const { runId } = useParams();
@@ -28,7 +29,7 @@ export default function RunDetail() {
         throw new Error("Invalid response format");
       }
     } catch (err) {
-      setError(err.message || "Failed to fetch run details");
+      setError(err);
     } finally {
       setIsLoading(false);
     }
@@ -57,8 +58,8 @@ export default function RunDetail() {
   };
 
   if (isLoading) return <div className="loading-state">Loading run details...</div>;
-  if (error) return <div className="error-state">Error: {error}</div>;
-  if (!runData || !runData.experimentRun) return <div className="error-state">Run not found</div>;
+  if (error) return <ErrorState error={error} onRetry={fetchRun} />;
+  if (!runData || !runData.experimentRun) return <ErrorState error={{ status: 404, message: "Run not found" }} />;
 
   const run = runData.experimentRun;
   const datasetVersions = runData.datasetVersions || [];
