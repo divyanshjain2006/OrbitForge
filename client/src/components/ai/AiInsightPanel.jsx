@@ -12,7 +12,7 @@ export default function AiInsightPanel({ role, contextRefs, buttonLabel = "Gener
     setLoading(true);
     setError(null);
     try {
-      const token = localStorage.getItem("auth_token");
+      const token = localStorage.getItem("token");
       const res = await fetch(`/api/v1/workspaces/${activeWorkspaceId}/ai/analyze`, {
         method: "POST",
         headers: {

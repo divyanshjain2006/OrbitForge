@@ -1,10 +1,11 @@
 import { processAiRequest } from "../services/ai/AiGateway.js";
 
 export async function analyze(req, res) {
+  console.log("REACHED ANALYZE ROUTE", req.body);
   try {
     const { role, contextRefs, userPrompt } = req.body;
-    const workspaceId = req.workspace._id; // Available from workspaceAuth middleware
-    const userId = req.user._id;
+    const workspaceId = req.workspaceId; // Available from workspaceAuth middleware
+    const userId = req.auth.userId;
 
     if (!role || !contextRefs) {
       return res.status(400).json({
@@ -23,20 +24,36 @@ export async function analyze(req, res) {
       });
     }
 
-    if (error.message.includes("Invalid or inactive AI role")) {
+    if (error.code === "INVALID_ROLE" || error.message.includes("Invalid or inactive AI role")) {
       return res.status(400).json({
         success: false,
         message: error.message
       });
     }
 
-    console.error("AI Analysis failed:", error);
+    if (error.code === "CONFIG_MISSING" || error.message.includes("AI Provider Not Configured")) {
+      return res.status(400).json({
+        success: false,
+        message: "AI Provider is not fully configured.",
+        details: error.message
+      });
+    }
     
-    // Provide a normalized AI error
+    if (error.message.includes("API error") || error.message.includes("timeout") || error.message.includes("Malformed provider response")) {
+      console.error("Upstream AI Provider failure:", error);
+      return res.status(502).json({
+        success: false,
+        message: "Upstream AI Provider failure",
+        details: error.message
+      });
+    }
+
+    console.error("AI Analysis unexpected failure:", error);
+    
     return res.status(500).json({
       success: false,
-      message: "AI Provider failure",
-      details: error.message
+      message: "AI Service encountered an unexpected error.",
+      details: process.env.NODE_ENV === "development" ? error.message : "Internal Server Error"
     });
   }
 }

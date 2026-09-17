@@ -1,50 +1,45 @@
 import { useWorkspace } from "../contexts/WorkspaceContext";
 
-export default function WorkspaceSelector() {
+export default function WorkspaceSelector({ mobile = false }) {
   const { workspaces, activeWorkspaceId, setWorkspace, isLoading, error } = useWorkspace();
 
   if (isLoading) {
-    return <div className="workspace-selector loading">Loading workspaces...</div>;
+    return <div className={`workspace-selector loading ${mobile ? 'mobile' : ''}`}>Loading workspaces...</div>;
   }
 
   if (error) {
-    return <div className="workspace-selector error">Error loading workspaces</div>;
+    return <div className={`workspace-selector error ${mobile ? 'mobile' : ''}`}>Error loading workspaces</div>;
   }
 
   if (workspaces.length === 0) {
-    return <div className="workspace-selector empty">No workspaces found</div>;
+    return <div className={`workspace-selector empty ${mobile ? 'mobile' : ''}`}>No workspaces found</div>;
   }
 
-  const activeWorkspaceName = workspaces.find(w => w.id === activeWorkspaceId)?.name;
+  const activeWorkspace = workspaces.find(w => w.id === activeWorkspaceId);
 
   return (
-    <div className="workspace-selector" style={{ display: "flex", alignItems: "center", gap: "0.5rem", minWidth: 0 }}>
-      <label htmlFor="workspace-select" className="workspace-label" style={{ fontSize: "0.85rem", color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "1px", flexShrink: 0 }}>Workspace:</label>
-      <select
-        id="workspace-select"
-        value={activeWorkspaceId || ""}
-        onChange={(e) => setWorkspace(e.target.value)}
-        title={activeWorkspaceName}
-        style={{
-          padding: "0.25rem 0.5rem",
-          backgroundColor: "var(--bg-input)",
-          border: "1px solid var(--border)",
-          color: "var(--text-primary)",
-          borderRadius: "4px",
-          cursor: "pointer",
-          fontSize: "0.9rem",
-          maxWidth: "200px",
-          textOverflow: "ellipsis",
-          overflow: "hidden",
-          whiteSpace: "nowrap"
-        }}
-      >
-        {workspaces.map((ws) => (
-          <option key={ws.id} value={ws.id}>
-            {ws.name} ({ws.role})
-          </option>
-        ))}
-      </select>
+    <div className={`workspace-selector ${mobile ? 'mobile' : ''}`}>
+      {!mobile && <label htmlFor="workspace-select" className="workspace-label">Workspace:</label>}
+      <div className="workspace-select-wrapper">
+        <select
+          id="workspace-select"
+          value={activeWorkspaceId || ""}
+          onChange={(e) => setWorkspace(e.target.value)}
+          title={activeWorkspace?.name}
+          className="workspace-select"
+        >
+          {workspaces.map((ws) => (
+            <option key={ws.id} value={ws.id}>
+              {ws.name} ({ws.role})
+            </option>
+          ))}
+        </select>
+        <div className="workspace-select-icon">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </div>
+      </div>
     </div>
   );
 }

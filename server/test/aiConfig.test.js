@@ -32,7 +32,7 @@ test("addProvider encrypts the API key before saving", async () => {
 
   try {
     const req = {
-      user: { _id: "user123" },
+      auth: { userId: "user123" },
       body: { provider: "gemini", apiKey: "plaintext-key" }
     };
     let responseBody = null;

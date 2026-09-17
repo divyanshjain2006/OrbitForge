@@ -4,7 +4,11 @@ const aiRoleConfigSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
   role: { type: String, required: true, uppercase: true },
   provider: { type: String, required: true, lowercase: true, enum: ["openai", "gemini", "claude", "openrouter"] },
-  model: { type: String, required: true }
+  model: { type: String, required: true },
+  encryptedKey: { type: String },
+  iv: { type: String },
+  authTag: { type: String },
+  encryptionVersion: { type: Number }
 }, { timestamps: true });
 
 // Each user should have one active configuration per AI role.

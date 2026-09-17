@@ -97,54 +97,73 @@ export default function AiSettings() {
   };
 
   const handleRoleChange = async (roleId, field, value) => {
-    const currentConfig = rolesConfig[roleId] || { provider: 'openai', model: '' };
+    const currentConfig = rolesConfig[roleId] || { provider: 'openai', model: '', apiKey: '' };
     const newConfig = { ...currentConfig, [field]: value };
     
+    // Don't save if it's just the API key being cleared locally
+    if (field === 'apiKey' && !value) return;
+
+    const defaultModels = {
+      openai: "gpt-4o-mini",
+      gemini: "gemini-1.5-flash",
+      claude: "claude-3-haiku-20240307",
+      openrouter: "meta-llama/llama-3-8b-instruct:free"
+    };
+    const finalModel = newConfig.model || defaultModels[newConfig.provider] || "gpt-4o-mini";
+
     try {
-      await updateAiRole(roleId, newConfig.provider, newConfig.model || 'default-model');
+      await updateAiRole(roleId, newConfig.provider, finalModel, newConfig.apiKey);
       await fetchData();
     } catch (err) {
       alert(err.message || 'Failed to update role');
     }
   };
 
-  if (loading) return <div style={{ padding: '2rem' }}>Loading AI settings...</div>;
+  if (loading) return <div className="loading-state">Loading AI settings...</div>;
 
   const connectedProviderIds = providers.map(p => p.provider);
   const unconnectedProviders = AVAILABLE_PROVIDERS.filter(p => !connectedProviderIds.includes(p.id));
 
   return (
-    <div style={{ maxWidth: '800px', margin: '0 auto', padding: '2rem' }}>
-      <h1>AI Providers &amp; Models</h1>
-      {error && <div style={{ background: '#f8d7da', color: '#721c24', padding: '1rem', borderRadius: '4px', marginBottom: '1rem' }}>{error}</div>}
+    <div className="ai-settings-container">
+      <header className="ai-settings-header">
+        <h1 className="ai-settings-title">AI Providers &amp; Models</h1>
+        <p className="ai-settings-subtitle">Manage your connections to external language models.</p>
+      </header>
       
-      <section style={{ marginBottom: '3rem', background: '#fff', padding: '1.5rem', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-        <h2>Connected Providers</h2>
+      {error && <div className="ai-alert-error">{error}</div>}
+      <section className="ai-settings-section">
+        <h2 className="ai-settings-section-title">Connected Providers</h2>
         
         {providers.length === 0 ? (
-          <p style={{ color: '#666' }}>No AI providers connected. Connect an AI provider to enable OrbitForge AI assistance.</p>
+          <div className="ai-settings-card">
+            <p className="text-muted">No AI providers connected. Connect an AI provider to enable OrbitForge AI assistance.</p>
+          </div>
         ) : (
-          <ul style={{ listStyle: 'none', padding: 0 }}>
+          <ul className="ai-connected-list">
             {providers.map(p => {
               const provInfo = AVAILABLE_PROVIDERS.find(ap => ap.id === p.provider);
               return (
-                <li key={p.provider} style={{ borderBottom: '1px solid #eee', padding: '1rem 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div>
-                    <h3 style={{ margin: '0 0 0.5rem 0' }}>{provInfo ? provInfo.name : p.provider}</h3>
-                    <div style={{ display: 'flex', gap: '1rem', fontSize: '0.9rem', color: '#555' }}>
-                      <span style={{ color: 'green', fontWeight: 'bold' }}>✓ Connected</span>
+                <li key={p.provider} className="ai-connected-item">
+                  <div className="ai-provider-info">
+                    <h3 className="ai-provider-name">{provInfo ? provInfo.name : p.provider}</h3>
+                    <div className="ai-provider-meta">
+                      <span className="ai-status-badge">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        Connected
+                      </span>
                       <span>Key: ••••••••••••</span>
                       {p.lastTestedAt && <span>Last tested: {new Date(p.lastTestedAt).toLocaleString()}</span>}
                     </div>
                     {testResult.provider === p.provider && (
-                      <div style={{ marginTop: '0.5rem', fontSize: '0.9rem', color: testResult.status === 'success' ? 'green' : (testResult.status === 'error' ? 'red' : 'blue') }}>
+                      <div style={{ marginTop: '0.5rem', fontSize: '0.9rem', color: testResult.status === 'success' ? 'var(--success)' : (testResult.status === 'error' ? 'var(--danger)' : 'var(--accent)') }}>
                         {testResult.message}
                       </div>
                     )}
                   </div>
-                  <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    <button onClick={() => handleTest(p.provider)} style={{ padding: '0.5rem 1rem', background: '#f0f0f0', border: '1px solid #ccc', borderRadius: '4px', cursor: 'pointer' }}>Test Connection</button>
-                    <button onClick={() => handleRemove(p.provider)} style={{ padding: '0.5rem 1rem', background: '#ffebee', color: '#c62828', border: '1px solid #ffcdd2', borderRadius: '4px', cursor: 'pointer' }}>Remove</button>
+                  <div className="ai-actions">
+                    <button onClick={() => handleTest(p.provider)} className="ai-btn-test">Test Connection</button>
+                    <button onClick={() => handleRemove(p.provider)} className="ai-btn-remove">Remove</button>
                   </div>
                 </li>
               );
@@ -154,96 +173,112 @@ export default function AiSettings() {
       </section>
 
       {unconnectedProviders.length > 0 && (
-        <section style={{ marginBottom: '3rem', background: '#fff', padding: '1.5rem', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-          <h2>Connect New Provider</h2>
-          <form onSubmit={handleConnect} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxWidth: '400px' }}>
-            <div>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>Provider</label>
-              <select 
-                value={newProviderId} 
-                onChange={(e) => setNewProviderId(e.target.value)}
-                style={{ width: '100%', padding: '0.5rem', border: '1px solid #ccc', borderRadius: '4px' }}
-              >
-                {unconnectedProviders.map(p => (
-                  <option key={p.id} value={p.id}>{p.name}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>API Key</label>
-              <input 
-                type="password" 
-                value={newProviderKey}
-                onChange={(e) => setNewProviderKey(e.target.value)}
-                placeholder="Enter your API key"
-                required
-                style={{ width: '100%', padding: '0.5rem', border: '1px solid #ccc', borderRadius: '4px' }}
-              />
-            </div>
-            <button type="submit" disabled={isSubmitting} style={{ padding: '0.75rem', background: '#0056b3', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>
-              {isSubmitting ? 'Connecting...' : 'Save Provider'}
-            </button>
-          </form>
+        <section className="ai-settings-section">
+          <h2 className="ai-settings-section-title">Connect New Provider</h2>
+          <div className="ai-settings-card">
+            <form onSubmit={handleConnect} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', maxWidth: '400px' }}>
+              <div className="ai-form-group">
+                <label className="ai-label">Provider</label>
+                <select 
+                  value={newProviderId} 
+                  onChange={(e) => setNewProviderId(e.target.value)}
+                  className="ai-select"
+                >
+                  {unconnectedProviders.map(p => (
+                    <option key={p.id} value={p.id}>{p.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="ai-form-group">
+                <label className="ai-label">API Key</label>
+                <input 
+                  type="password" 
+                  value={newProviderKey}
+                  onChange={(e) => setNewProviderKey(e.target.value)}
+                  placeholder="Enter your API key"
+                  required
+                  className="ai-input"
+                />
+              </div>
+              <button type="submit" disabled={isSubmitting} className="ai-btn-primary" style={{ alignSelf: 'flex-start' }}>
+                {isSubmitting ? 'Connecting...' : 'Save Provider'}
+              </button>
+            </form>
+          </div>
         </section>
       )}
 
-      <section style={{ background: '#fff', padding: '1.5rem', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-        <h2>AI Role Configuration</h2>
-        <p style={{ color: '#666', marginBottom: '1.5rem' }}>Assign connected providers and models to specific OrbitForge AI roles.</p>
+      <section className="ai-settings-section">
+        <h2 className="ai-settings-section-title">AI Role Configuration</h2>
+        <p className="text-muted" style={{ marginBottom: '1.5rem' }}>Assign specific providers and models to OrbitForge AI roles.</p>
         
-        {providers.length === 0 ? (
-          <div style={{ padding: '1rem', background: '#fff3cd', color: '#856404', borderRadius: '4px' }}>
-            Please connect at least one AI provider above to configure roles.
-          </div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-            {ROLES.map(role => {
-              const currentConfig = rolesConfig[role.id] || { provider: '', model: '' };
-              
-              return (
-                <div key={role.id} style={{ border: '1px solid #eee', padding: '1rem', borderRadius: '4px' }}>
-                  <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.1rem' }}>{role.name}</h3>
-                  <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                    <div style={{ flex: 1 }}>
-                      <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '0.25rem', color: '#555' }}>Provider</label>
-                      <select 
-                        value={currentConfig.provider}
-                        onChange={(e) => handleRoleChange(role.id, 'provider', e.target.value)}
-                        style={{ width: '100%', padding: '0.5rem', border: '1px solid #ccc', borderRadius: '4px' }}
-                      >
-                        <option value="" disabled>Select a connected provider</option>
-                        {providers.map(p => {
-                          const provInfo = AVAILABLE_PROVIDERS.find(ap => ap.id === p.provider);
-                          return (
-                            <option key={p.provider} value={p.provider}>{provInfo ? provInfo.name : p.provider}</option>
-                          );
-                        })}
-                      </select>
-                    </div>
-                    <div style={{ flex: 1 }}>
-                      <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '0.25rem', color: '#555' }}>Model</label>
-                      <input 
-                        type="text" 
-                        value={currentConfig.model}
-                        onChange={(e) => {
-                          // local state update for typing
-                          setRolesConfig(prev => ({
-                            ...prev,
-                            [role.id]: { ...prev[role.id], model: e.target.value }
-                          }));
-                        }}
-                        onBlur={(e) => handleRoleChange(role.id, 'model', e.target.value)}
-                        placeholder="e.g. gpt-4o, gemini-1.5-pro"
-                        disabled={!currentConfig.provider}
-                        style={{ width: '100%', padding: '0.5rem', border: '1px solid #ccc', borderRadius: '4px' }}
-                      />
-                    </div>
-                  </div>
+        <div className="ai-role-grid">
+          {ROLES.map(role => {
+            const currentConfig = rolesConfig[role.id] || { provider: '', model: '', apiKey: '' };
+            
+            return (
+              <div key={role.id} className="ai-settings-card ai-role-card">
+                <header className="ai-role-header">
+                  <h3 className="ai-role-name">{role.name}</h3>
+                </header>
+                
+                <div className="ai-form-group">
+                  <label className="ai-label">Provider</label>
+                  <select 
+                    value={currentConfig.provider}
+                    onChange={(e) => handleRoleChange(role.id, 'provider', e.target.value)}
+                    className="ai-select"
+                  >
+                    <option value="" disabled>Select a provider</option>
+                    {AVAILABLE_PROVIDERS.map(p => (
+                      <option key={p.id} value={p.id}>{p.name}</option>
+                    ))}
+                  </select>
                 </div>
-              );
-            })}
-          </div>
-        )}
+                
+                <div className="ai-form-group">
+                  <label className="ai-label">Model</label>
+                  <input 
+                    type="text" 
+                    value={currentConfig.model || ''}
+                    onChange={(e) => {
+                      setRolesConfig(prev => ({
+                        ...prev,
+                        [role.id]: { ...prev[role.id], model: e.target.value }
+                      }));
+                    }}
+                    onBlur={(e) => handleRoleChange(role.id, 'model', e.target.value)}
+                    placeholder="e.g. gpt-4o"
+                    disabled={!currentConfig.provider}
+                    className="ai-input"
+                  />
+                </div>
+                
+                <div className="ai-form-group">
+                  <label className="ai-label">API Key Override</label>
+                  <input 
+                    type="password" 
+                    value={currentConfig.apiKey || ''}
+                    onChange={(e) => {
+                      setRolesConfig(prev => ({
+                        ...prev,
+                        [role.id]: { ...prev[role.id], apiKey: e.target.value }
+                      }));
+                    }}
+                    onBlur={(e) => {
+                      if (e.target.value) {
+                        handleRoleChange(role.id, 'apiKey', e.target.value);
+                      }
+                    }}
+                    placeholder="Leave blank to use global"
+                    disabled={!currentConfig.provider}
+                    className="ai-input"
+                  />
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </section>
     </div>
   );

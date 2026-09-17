@@ -675,10 +675,17 @@ export async function getAiRoles() {
   return parseApiResponse(response);
 }
 
-export async function updateAiRole(role, provider, model) {
+export async function updateAiRole(role, provider, model, apiKey) {
+  const payload = { provider, model };
+  if (apiKey) payload.apiKey = apiKey;
+  
   const response = await apiFetch(`${API_BASE_URL}/v1/ai-config/roles/${role}`, {
     method: "PUT",
-    body: JSON.stringify({ provider, model })
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
   });
-  return parseApiResponse(response);
+
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || "Failed to update role");
+  return data;
 }

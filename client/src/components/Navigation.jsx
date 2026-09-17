@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { NavLink, Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import WorkspaceSelector from "./WorkspaceSelector";
@@ -7,82 +7,56 @@ function Navigation() {
   const { isAuthenticated, logout, user } = useAuth();
   const navigate = useNavigate();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const menuRef = useRef(null);
+  const profileRef = useRef(null);
 
   const handleLogout = () => {
     logout();
     navigate("/login");
   };
 
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 10);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (isMobileOpen && menuRef.current && !menuRef.current.contains(event.target)) {
+        setIsMobileOpen(false);
+      }
+      if (isProfileOpen && profileRef.current && !profileRef.current.contains(event.target)) {
+        setIsProfileOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isMobileOpen, isProfileOpen]);
+
   const navItems = [
     { to: "/", label: "Overview", end: true },
-    { to: "/research/datasets", label: "NASA Space Weather", authOnly: true },
+    { to: "/research/datasets", label: "Space Weather", authOnly: true },
     { to: "/research", label: "Research Lab", authOnly: true },
     { to: "/settings/ai", label: "AI Settings", authOnly: true },
   ];
 
   return (
-    <header className="top-nav" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", minWidth: 0 }}>
-      <div style={{ display: "flex", alignItems: "center", gap: "2rem", minWidth: 0 }}>
-        <Link to="/" className="brand" style={{ flexShrink: 0 }}>
-          <span className="brand-mark">OF</span>
-          <span className="brand-name">OrbitForge</span>
-        </Link>
-
-        <nav className="nav-links nav-desktop-only">
-          {navItems.map((item) => {
-            if (item.authOnly && !isAuthenticated) return null;
-            return (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                end={item.end}
-                className={({ isActive }) =>
-                  `nav-link ${isActive ? "active" : ""}`
-                }
-              >
-                {item.label}
-              </NavLink>
-            );
-          })}
-        </nav>
-      </div>
-
-      <div className="nav-desktop-only" style={{ display: "flex", alignItems: "center", gap: "1rem", minWidth: 0 }}>
-        {isAuthenticated && <WorkspaceSelector />}
-
-        {isAuthenticated ? (
-          <div style={{ display: "flex", alignItems: "center", gap: "1rem", borderLeft: "1px solid var(--border)", paddingLeft: "1rem", minWidth: 0 }}>
-            <span
-              title={user?.email}
-              style={{ fontSize: "0.9rem", color: "var(--text-secondary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "150px" }}
-            >
-              {user?.email}
+    <header className={`top-nav ${scrolled ? "scrolled" : ""}`}>
+      <div className="nav-container">
+        <div className="nav-brand-group">
+          <Link to="/" className="brand">
+            <span className="brand-mark">
+              <span className="brand-mark-inner">OF</span>
             </span>
-            <button
-              onClick={handleLogout}
-              style={{ background: "none", border: "1px solid var(--border)", color: "var(--text-primary)", padding: "0.25rem 0.5rem", borderRadius: "4px", cursor: "pointer", fontSize: "0.85rem", flexShrink: 0 }}
-            >
-              Logout
-            </button>
-          </div>
-        ) : (
-          <Link to="/login" className="action-button primary" style={{ textDecoration: "none", padding: "0.5rem 1rem", borderRadius: "4px", flexShrink: 0 }}>
-            Login
+            <span className="brand-name">OrbitForge</span>
           </Link>
-        )}
-      </div>
 
-      <button
-        className="nav-mobile-toggle"
-        onClick={() => setIsMobileOpen(!isMobileOpen)}
-        style={{ background: "none", border: "1px solid var(--border)", color: "var(--text-primary)", padding: "0.25rem 0.5rem", borderRadius: "4px", cursor: "pointer", flexShrink: 0 }}
-      >
-        ☰
-      </button>
-
-      {isMobileOpen && (
-        <div className="nav-mobile-menu">
-          <nav style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+          <nav className="nav-links nav-desktop-only">
             {navItems.map((item) => {
               if (item.authOnly && !isAuthenticated) return null;
               return (
@@ -90,40 +64,107 @@ function Navigation() {
                   key={item.to}
                   to={item.to}
                   end={item.end}
-                  className={({ isActive }) =>
-                    `nav-link ${isActive ? "active" : ""}`
-                  }
-                  onClick={() => setIsMobileOpen(false)}
+                  className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}
                 >
-                  {item.label}
+                  <span className="nav-link-text">{item.label}</span>
+                  <span className="nav-link-indicator"></span>
                 </NavLink>
               );
             })}
           </nav>
+        </div>
 
+        <div className="nav-actions nav-desktop-only">
           {isAuthenticated && <WorkspaceSelector />}
 
           {isAuthenticated ? (
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", marginTop: "0.5rem", paddingTop: "0.5rem", borderTop: "1px solid var(--border)" }}>
-              <span style={{ fontSize: "0.9rem", color: "var(--text-secondary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                {user?.email}
-              </span>
-              <button
-                onClick={handleLogout}
-                style={{ alignSelf: "flex-start", background: "none", border: "1px solid var(--border)", color: "var(--text-primary)", padding: "0.25rem 0.5rem", borderRadius: "4px", cursor: "pointer", fontSize: "0.85rem" }}
+            <div className="user-profile-group" ref={profileRef}>
+              <button 
+                className="user-info-button" 
+                onClick={() => setIsProfileOpen(!isProfileOpen)}
+                title={user?.email}
               >
-                Logout
+                <span className="user-avatar">{user?.email?.charAt(0).toUpperCase() || 'U'}</span>
+                <span className="user-email">{user?.email}</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginLeft: '4px', opacity: 0.7 }}>
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
               </button>
+              
+              {isProfileOpen && (
+                <div className="profile-dropdown">
+                  <Link to="/settings/profile" className="profile-dropdown-item" onClick={() => setIsProfileOpen(false)}>
+                    Profile
+                  </Link>
+                  <button className="profile-dropdown-item" onClick={() => { setIsProfileOpen(false); handleLogout(); }}>
+                    Logout
+                  </button>
+                </div>
+              )}
             </div>
           ) : (
-            <div style={{ marginTop: "0.5rem" }}>
-              <Link to="/login" className="action-button primary" style={{ textDecoration: "none", padding: "0.5rem 1rem", borderRadius: "4px", display: "inline-block" }} onClick={() => setIsMobileOpen(false)}>
-                Login
-              </Link>
-            </div>
+            <Link to="/login" className="button button-primary button-glow">
+              Login
+            </Link>
           )}
         </div>
-      )}
+
+        <button
+          className={`nav-mobile-toggle ${isMobileOpen ? "open" : ""}`}
+          onClick={() => setIsMobileOpen(!isMobileOpen)}
+          aria-label="Toggle menu"
+        >
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+
+        <div className={`nav-mobile-menu ${isMobileOpen ? "open" : ""}`} ref={menuRef}>
+          <div className="nav-mobile-content">
+            <nav className="nav-mobile-links">
+              {navItems.map((item) => {
+                if (item.authOnly && !isAuthenticated) return null;
+                return (
+                  <NavLink
+                    key={item.to}
+                    to={item.to}
+                    end={item.end}
+                    className={({ isActive }) => `nav-mobile-link ${isActive ? "active" : ""}`}
+                    onClick={() => setIsMobileOpen(false)}
+                  >
+                    {item.label}
+                  </NavLink>
+                );
+              })}
+            </nav>
+
+            <div className="nav-mobile-actions">
+              {isAuthenticated && (
+                <div className="mobile-workspace-wrapper">
+                  <WorkspaceSelector mobile />
+                </div>
+              )}
+
+              {isAuthenticated ? (
+                <div className="mobile-user-actions">
+                  <div className="mobile-user-info">
+                    <span className="user-avatar">{user?.email?.charAt(0).toUpperCase() || 'U'}</span>
+                    <span className="user-email">{user?.email}</span>
+                  </div>
+                  <button className="button button-secondary full-width" onClick={handleLogout}>
+                    Logout
+                  </button>
+                </div>
+              ) : (
+                <Link to="/login" className="button button-primary button-glow full-width" onClick={() => setIsMobileOpen(false)}>
+                  Login
+                </Link>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+      {isMobileOpen && <div className="nav-mobile-overlay" onClick={() => setIsMobileOpen(false)}></div>}
     </header>
   );
 }

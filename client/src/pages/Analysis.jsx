@@ -417,7 +417,7 @@ function Analysis() {
         return;
       }
       
-      if (!activeWorkspaceId || activeWorkspaceId === "undefined") {
+      if (!activeWorkspaceId || activeWorkspaceId === "undefined" || activeWorkspaceId === "null") {
         // Wait until activeWorkspaceId is resolved
         return;
       }

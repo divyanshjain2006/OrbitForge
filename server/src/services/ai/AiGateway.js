@@ -48,6 +48,16 @@ You must return a strict JSON output matching the required schema.
   }
 }
 
+function getDefaultModel(provider) {
+  switch (provider) {
+    case "openai": return "gpt-4o-mini";
+    case "gemini": return "gemini-1.5-flash";
+    case "claude": return "claude-3-haiku-20240307";
+    case "openrouter": return "meta-llama/llama-3-8b-instruct:free";
+    default: return "gpt-4o-mini";
+  }
+}
+
 export async function processAiRequest(workspaceId, userId, role, contextRefs, userPrompt = "") {
   // 1. Resolve role config
   let provider = null;
@@ -56,38 +66,53 @@ export async function processAiRequest(workspaceId, userId, role, contextRefs, u
 
   // Check valid role
   if (!AI_ROLES[role]) {
-    throw new Error(`Invalid or inactive AI role: ${role}`);
+    const err = new Error(`Invalid or inactive AI role: ${role}`);
+    err.code = "INVALID_ROLE";
+    throw err;
   }
 
   const userRoleConfig = await AiRoleConfigDb.findOne({ userId, role }).lean();
+  const serverConfig = getServerRoleConfig(role);
+
   if (userRoleConfig) {
     // User explicitly configured this role
     provider = userRoleConfig.provider;
-    model = userRoleConfig.model;
+    model = userRoleConfig.model || (serverConfig && serverConfig.provider === provider ? serverConfig.model : getDefaultModel(provider));
     
-    const userProvider = await AiProviderDb.findOne({ userId, provider }).lean();
-    if (!userProvider) {
-      throw new Error("AI Provider Not Configured: The configured provider is not connected.");
+    if (userRoleConfig.encryptedKey) {
+      apiKey = decryptSecret(userRoleConfig);
+    } else {
+      const userProvider = await AiProviderDb.findOne({ userId, provider }).lean();
+      if (userProvider && userProvider.encryptedKey) {
+        apiKey = decryptSecret(userProvider);
+      }
     }
-    
-    apiKey = decryptSecret(userProvider);
-  } else {
+  } else if (serverConfig) {
     // Fall back to server environment
-    const serverConfig = getServerRoleConfig(role);
-    if (!serverConfig) {
-      throw new Error("AI Provider Not Configured");
-    }
     provider = serverConfig.provider;
     model = serverConfig.model;
-    
+  } else {
+    const err = new Error("AI Provider Not Configured: Role has no configuration.");
+    err.code = "CONFIG_MISSING";
+    throw err;
+  }
+
+  // Fallback to server key if apiKey is still missing (either BYOK without key, or full server fallback)
+  if (!apiKey) {
     if (provider === "openai") apiKey = process.env.OPENAI_API_KEY;
     else if (provider === "gemini") apiKey = process.env.GEMINI_API_KEY;
     else if (provider === "claude") apiKey = process.env.CLAUDE_API_KEY;
     else if (provider === "openrouter") apiKey = process.env.OPENROUTER_API_KEY;
-    
-    if (!apiKey) {
-      throw new Error("AI Provider Not Configured");
-    }
+  }
+  
+  if (!apiKey) {
+    const err = new Error(`AI Provider Not Configured: Missing API key for ${provider}`);
+    err.code = "CONFIG_MISSING";
+    throw err;
+  }
+  
+  if (!model || model === "default-model") {
+    model = getDefaultModel(provider);
   }
 
   // 2. Initialize Interaction

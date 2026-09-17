@@ -7,7 +7,7 @@ const ALLOWED_PROVIDERS = ["openai", "gemini", "claude", "openrouter"];
 
 export async function getProviders(req, res) {
   try {
-    const providers = await AiProviderDb.find({ userId: req.user._id }).lean();
+    const providers = await AiProviderDb.find({ userId: req.auth.userId }).lean();
     const masked = providers.map(p => ({
       provider: p.provider,
       connected: true,
@@ -34,7 +34,7 @@ export async function addProvider(req, res) {
     const { encryptedKey, iv, authTag, encryptionVersion } = encryptSecret(apiKey);
 
     await AiProviderDb.findOneAndUpdate(
-      { userId: req.user._id, provider: provider.toLowerCase() },
+      { userId: req.auth.userId, provider: provider.toLowerCase() },
       { encryptedKey, iv, authTag, encryptionVersion },
       { upsert: true, new: true }
     );
@@ -49,7 +49,7 @@ export async function addProvider(req, res) {
 export async function removeProvider(req, res) {
   try {
     const { provider } = req.params;
-    await AiProviderDb.findOneAndDelete({ userId: req.user._id, provider: provider.toLowerCase() });
+    await AiProviderDb.findOneAndDelete({ userId: req.auth.userId, provider: provider.toLowerCase() });
     return res.json({ success: true, message: "Provider removed successfully" });
   } catch (err) {
     console.error("Failed to remove AI provider", err);
@@ -60,7 +60,7 @@ export async function removeProvider(req, res) {
 export async function testProvider(req, res) {
   try {
     const { provider } = req.params;
-    const userProvider = await AiProviderDb.findOne({ userId: req.user._id, provider: provider.toLowerCase() });
+    const userProvider = await AiProviderDb.findOne({ userId: req.auth.userId, provider: provider.toLowerCase() });
     if (!userProvider) {
       return res.status(404).json({ success: false, message: "Provider not configured" });
     }
@@ -128,7 +128,7 @@ export async function testProvider(req, res) {
 
 export async function getRoles(req, res) {
   try {
-    const roles = await AiRoleConfigDb.find({ userId: req.user._id }).lean();
+    const roles = await AiRoleConfigDb.find({ userId: req.auth.userId }).lean();
     return res.json({ success: true, roles });
   } catch (err) {
     console.error("Failed to get AI roles", err);
@@ -139,7 +139,7 @@ export async function getRoles(req, res) {
 export async function updateRole(req, res) {
   try {
     const { role } = req.params;
-    const { provider, model } = req.body;
+    const { provider, model, apiKey } = req.body;
 
     if (!role || !AI_ROLES[role.toUpperCase()]) {
       return res.status(400).json({ success: false, message: "Invalid role" });
@@ -151,15 +151,28 @@ export async function updateRole(req, res) {
       return res.status(400).json({ success: false, message: "Invalid model" });
     }
 
-    // Verify provider is configured
-    const userProvider = await AiProviderDb.findOne({ userId: req.user._id, provider: provider.toLowerCase() }).lean();
-    if (!userProvider) {
-      return res.status(400).json({ success: false, message: "Provider is not connected" });
+    const updateData = { provider: provider.toLowerCase(), model };
+
+    if (apiKey && typeof apiKey === "string") {
+      const { encryptedKey, iv, authTag, encryptionVersion } = encryptSecret(apiKey);
+      updateData.encryptedKey = encryptedKey;
+      updateData.iv = iv;
+      updateData.authTag = authTag;
+      updateData.encryptionVersion = encryptionVersion;
+    } else {
+      // If no new API key is provided, ensure they either have a global provider or an existing role key
+      const existingRole = await AiRoleConfigDb.findOne({ userId: req.auth.userId, role: role.toUpperCase() }).lean();
+      if (!existingRole?.encryptedKey) {
+        const userProvider = await AiProviderDb.findOne({ userId: req.auth.userId, provider: provider.toLowerCase() }).lean();
+        if (!userProvider) {
+          return res.status(400).json({ success: false, message: "No API key provided and no global provider connected." });
+        }
+      }
     }
 
     const updated = await AiRoleConfigDb.findOneAndUpdate(
-      { userId: req.user._id, role: role.toUpperCase() },
-      { provider: provider.toLowerCase(), model },
+      { userId: req.auth.userId, role: role.toUpperCase() },
+      updateData,
       { upsert: true, new: true }
     ).lean();
 

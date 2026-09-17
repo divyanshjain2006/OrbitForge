@@ -9,7 +9,9 @@ export function WorkspaceProvider({ children }) {
   const { isAuthenticated } = useAuth();
   const [workspaces, setWorkspaces] = useState([]);
   const [activeWorkspaceId, setActiveWorkspaceId] = useState(() => {
-    return localStorage.getItem("activeWorkspaceId") || null;
+    const saved = localStorage.getItem("activeWorkspaceId");
+    if (saved === "null" || saved === "undefined") return null;
+    return saved || null;
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -53,7 +55,7 @@ export function WorkspaceProvider({ children }) {
 
   // Persist active workspace to local storage
   useEffect(() => {
-    if (activeWorkspaceId) {
+    if (activeWorkspaceId && activeWorkspaceId !== "null" && activeWorkspaceId !== "undefined") {
       localStorage.setItem("activeWorkspaceId", activeWorkspaceId);
     } else {
       localStorage.removeItem("activeWorkspaceId");

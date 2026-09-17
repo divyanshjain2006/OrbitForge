@@ -121,7 +121,7 @@ app.use("/api/v1", researchWorkspaceRoutes);
 app.use("/api/v1", missionRoutes);
 app.use("/api/v1", decisionRoutes);
 app.use("/api/v1/challenges", challengeRoutes);
-app.use("/api/v1/ai", aiRoutes);
+app.use("/api/v1", aiRoutes);
 app.use("/api/v1/ai-config", aiConfigRoutes);
 app.use("/api/v1", simulationRoutes);
 app.use("/api/v1", analysisRoutes);
