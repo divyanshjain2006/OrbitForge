@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
-import { runScenario } from "../services/api";
+import { analyzeScenario } from "../services/api";
+import { useWorkspace } from "../contexts/WorkspaceContext";
 
 function ScenarioSimulator({
   missionId,
@@ -8,6 +9,7 @@ function ScenarioSimulator({
   onSimulationComplete, 
   onScenarioSelect
 }) {
+  const { activeWorkspaceId } = useWorkspace();
   const initialValues = useMemo(
     () => ({
       altitude:
@@ -89,7 +91,8 @@ function ScenarioSimulator({
       setLoading(true);
       setError("");
 
-      const data = await runScenario(
+      const data = await analyzeScenario(
+        activeWorkspaceId,
         missionId,
         scenario
       );

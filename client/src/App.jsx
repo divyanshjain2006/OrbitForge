@@ -1,9 +1,12 @@
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 
 import Navigation from "./components/Navigation";
 import Dashboard from "./pages/Dashboard";
 import CreateMission from "./pages/CreateMission";
 import Analysis from "./pages/Analysis";
+import SimulationLab from "./pages/SimulationLab";
+import MissionChallenges from "./pages/MissionChallenges";
+import ChallengeDebrief from "./pages/ChallengeDebrief";
 import Login from "./pages/Login";
 
 // Research Lab Pages
@@ -35,11 +38,47 @@ function App() {
               <Routes>
                 <Route path="/login" element={<Login />} />
 
-                {/* Legacy / Unprotected Routes */}
-                <Route path="/" element={<Dashboard />} />
-                <Route path="/missions/new" element={<CreateMission />} />
-                <Route path="/analysis/:missionId" element={<Analysis />} />
-                <Route path="/analysis" element={<Analysis />} />
+                {/* Protected Platform Routes */}
+                <Route path="/" element={
+                  <ProtectedRoute>
+                    <Dashboard />
+                  </ProtectedRoute>
+                } />
+                <Route path="/missions/new" element={
+                  <ProtectedRoute>
+                    <CreateMission />
+                  </ProtectedRoute>
+                } />
+                <Route path="/analysis/:missionId" element={
+                  <ProtectedRoute>
+                    <Analysis />
+                  </ProtectedRoute>
+                } />
+                <Route path="/analysis" element={
+                  <ProtectedRoute>
+                    <Analysis />
+                  </ProtectedRoute>
+                } />
+                <Route path="/simulation/:missionId" element={
+                  <ProtectedRoute>
+                    <SimulationLab />
+                  </ProtectedRoute>
+                } />
+                <Route path="/challenges/:missionId" element={
+                  <ProtectedRoute>
+                    <MissionChallenges />
+                  </ProtectedRoute>
+                } />
+                <Route path="/challenges/:missionId/:challengeId" element={
+                  <ProtectedRoute>
+                    <MissionChallenges />
+                  </ProtectedRoute>
+                } />
+                <Route path="/challenges/:missionId/:challengeId/debrief" element={
+                  <ProtectedRoute>
+                    <ChallengeDebrief />
+                  </ProtectedRoute>
+                } />
 
                 {/* Research Lab Routes */}
                 <Route path="/research" element={
@@ -61,6 +100,9 @@ function App() {
                   <Route path="runs/:runId" element={<RunDetail />} />
                   <Route path="records/:recordId" element={<ResearchRecordDetail />} />
                 </Route>
+
+                {/* Catch-all redirect */}
+                <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </main>
           </div>

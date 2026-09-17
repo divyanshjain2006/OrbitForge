@@ -9,6 +9,9 @@ const recentIngestions = new Map();
 const INGESTION_COOLDOWN_MS = 30000;
 
 export function createDataset(input) {
+  if (input.source === "NASA_DONKI_CME") {
+    return Dataset.create({ ...input, source: "NASA_DONKI_CME", sourceType: "NASA_API", sourceUri: "https://ccmc.gsfc.nasa.gov/DONKI-API/get/", datasetType: "SPACE_WEATHER" });
+  }
   return Dataset.create({ ...input, source: "CNEOS_SCOUT", sourceType: "NASA_API", sourceUri: "https://ssd-api.jpl.nasa.gov/scout.api", datasetType: "NEO_HAZARD_ASSESSMENT" });
 }
 export async function listDatasets(workspaceId) {
@@ -51,6 +54,41 @@ export async function ingestScoutDataset(dataset, createdBy, { fetcher } = {}) {
       relationships: { wasGeneratedBy: "cneos-scout-ingestion", wasAssociatedWith: String(createdBy), wasDerivedFrom: "cneos-scout-response" }
     },
     ingestionVersion: retrieved.adapterVersion,
+    createdBy
+  });
+  const validationRun = await validateDatasetVersion(version, createdBy);
+  return { version, validationRun };
+}
+
+import { fetchDonkiCME } from "./nasa/donki.service.js";
+
+export async function ingestDonkiDataset(dataset, createdBy) {
+  const lastIngestion = recentIngestions.get(String(dataset._id));
+  if (lastIngestion && Date.now() - lastIngestion < INGESTION_COOLDOWN_MS) {
+    const error = new Error("Please wait before requesting another DONKI ingestion for this dataset."); error.code = "INGESTION_RATE_LIMITED"; throw error;
+  }
+  recentIngestions.set(String(dataset._id), Date.now());
+  
+  const retrieved = await fetchDonkiCME();
+  const latest = await DatasetVersion.findOne({ datasetId: dataset._id }).sort({ version: -1 }).lean();
+  
+  const version = await DatasetVersion.create({
+    datasetId: dataset._id,
+    version: (latest?.version || 0) + 1,
+    sourceUri: retrieved.sourceUri,
+    retrievedAt: retrieved.retrievedAt,
+    rawPayload: retrieved.rawPayload,
+    rawPayloadHash: sha256Digest(retrieved.rawPayload),
+    normalizedPayload: retrieved.normalizedPayload,
+    normalizedPayloadHash: sha256Digest(retrieved.normalizedPayload),
+    canonicalizationVersion: CANONICALIZATION_VERSION,
+    provenance: {
+      entities: [{ id: "nasa-donki-response", type: "Entity", sourceUri: retrieved.sourceUri }],
+      activity: { type: "Activity", name: "nasa-donki-ingestion", retrievedAt: retrieved.retrievedAt, adapterVersion: retrieved.normalizedPayload.adapterVersion },
+      agent: { type: "Agent", id: "orbitforge-backend", typeLabel: "system" },
+      relationships: { wasGeneratedBy: "nasa-donki-ingestion", wasAssociatedWith: String(createdBy), wasDerivedFrom: "nasa-donki-response" }
+    },
+    ingestionVersion: retrieved.normalizedPayload.adapterVersion,
     createdBy
   });
   const validationRun = await validateDatasetVersion(version, createdBy);

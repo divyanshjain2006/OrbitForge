@@ -3,9 +3,11 @@ import ExperimentRun from "../../models/experimentRun.model.js";
 import Experiment from "../../models/experiment.model.js";
 import Project from "../../models/project.model.js";
 import Dataset from "../../models/dataset.model.js";
+import DatasetVersion from "../../models/datasetVersion.model.js";
 import Mission from "../../models/mission.model.js";
 import IntegrityManifest from "../../models/integrityManifest.model.js";
 import VerificationEvent from "../../models/verificationEvent.model.js";
+import Simulation from "../../models/simulation.model.js";
 
 /**
  * Resolves context for AI models, ensuring RBAC and Workspace bounds are strictly enforced.
@@ -106,6 +108,22 @@ export async function resolveAiContext(workspaceId, contextRefs) {
       structuredContext.resources.dataset = dataset;
     }
 
+    // 5b. Dataset Version Resolution
+    if (contextRefs.datasetVersionId) {
+      const datasetVersion = await DatasetVersion.findOne({
+        _id: contextRefs.datasetVersionId
+      }).lean();
+
+      if (datasetVersion) {
+        structuredContext.resources.datasetVersion = datasetVersion;
+        // Optionally evaluate space weather model if DONKI
+        if (structuredContext.resources.dataset && structuredContext.resources.dataset.source === "NASA_DONKI_CME") {
+           const { calculateSpaceWeatherIndex } = await import("../spaceEnvironment/spaceWeatherModel.js");
+           structuredContext.resources.spaceWeather = calculateSpaceWeatherIndex(datasetVersion.normalizedPayload?.objects || []);
+        }
+      }
+    }
+
     // 6. Mission Resolution
     if (contextRefs.missionId) {
       const mission = await Mission.findOne({
@@ -118,6 +136,23 @@ export async function resolveAiContext(workspaceId, contextRefs) {
       }
 
       structuredContext.resources.mission = mission;
+    }
+
+    // 7. Simulation Resolution
+    if (contextRefs.simulationId) {
+      const simulation = await Simulation.findOne({
+        _id: contextRefs.simulationId,
+        workspaceId
+      }).lean();
+
+      if (!simulation) {
+        throw new Error("UNAUTHORIZED_OR_MISSING: simulationId");
+      }
+
+      structuredContext.resources.simulation = simulation;
+      if (simulation.missionId) {
+        contextRefs.missionId = simulation.missionId;
+      }
     }
 
   } catch (error) {
@@ -136,6 +171,10 @@ export function formatContextForPrompt(structuredContext) {
   if (structuredContext.resources.mission) {
     text += "\nMISSION:\n" + JSON.stringify(structuredContext.resources.mission, null, 2);
   }
+
+  if (structuredContext.resources.simulation) {
+    text += "\nSIMULATION STATE:\n" + JSON.stringify(structuredContext.resources.simulation, null, 2);
+  }
   
   if (structuredContext.resources.project) {
     text += "\nPROJECT:\n" + JSON.stringify(structuredContext.resources.project, null, 2);
@@ -145,6 +184,10 @@ export function formatContextForPrompt(structuredContext) {
     // Only send metadata, not massive raw telemetry
     const { _id, name, type, source, createdAt } = structuredContext.resources.dataset;
     text += "\nDATASET (Metadata):\n" + JSON.stringify({ _id, name, type, source, createdAt }, null, 2);
+  }
+
+  if (structuredContext.resources.spaceWeather) {
+    text += "\nORBITFORGE MODELED SPACE WEATHER (Derived from NASA DONKI):\n" + JSON.stringify(structuredContext.resources.spaceWeather, null, 2);
   }
 
   if (structuredContext.resources.experiment) {

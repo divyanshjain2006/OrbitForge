@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useWorkspace } from "../contexts/WorkspaceContext";
 
 import { createMission } from "../services/api";
 
 function CreateMission() {
   const navigate = useNavigate();
+  const { activeWorkspaceId } = useWorkspace();
 
   const [mission, setMission] = useState({
     name: "",
@@ -32,7 +34,7 @@ function CreateMission() {
     setError("");
 
     try {
-      await createMission(mission);
+      await createMission(activeWorkspaceId, mission);
 
       navigate("/");
     } catch (err) {

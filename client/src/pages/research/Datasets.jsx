@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useWorkspace } from "../../contexts/WorkspaceContext";
-import { getDatasets } from "../../services/api";
+import { getDatasets, createDataset } from "../../services/api";
 import ErrorState from "../../components/ErrorState";
 
 export default function Datasets() {
@@ -9,6 +9,8 @@ export default function Datasets() {
   const [datasets, setDatasets] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isCreating, setIsCreating] = useState(false);
+  const [createForm, setCreateForm] = useState({ name: "", description: "", source: "CNEOS_SCOUT" });
 
   useEffect(() => {
     async function fetchDatasets() {
@@ -33,6 +35,21 @@ export default function Datasets() {
     fetchDatasets();
   }, [activeWorkspaceId]);
 
+  async function handleCreate(e) {
+    e.preventDefault();
+    if (!createForm.name.trim()) return;
+    try {
+      await createDataset(activeWorkspaceId, createForm);
+      setCreateForm({ name: "", description: "", source: "CNEOS_SCOUT" });
+      setIsCreating(false);
+      // Reload datasets
+      const data = await getDatasets(activeWorkspaceId);
+      if (data.success) setDatasets(data.datasets);
+    } catch (err) {
+      setError(err);
+    }
+  }
+
   if (isLoading) {
     return <div className="loading-state">Loading NASA datasets...</div>;
   }
@@ -47,10 +64,46 @@ export default function Datasets() {
         <div>
           <h1 style={{ margin: 0 }}>NASA Datasets</h1>
           <p style={{ color: "var(--text-secondary)", marginTop: "0.5rem" }}>
-            Explore and ingest data from NASA sources. Note that CNEOS Scout data represents preliminary/unconfirmed NEO trajectory information.
+            Explore and ingest data from NASA sources.
           </p>
         </div>
+        <button onClick={() => setIsCreating(!isCreating)} className="btn btn-primary">
+          {isCreating ? "Cancel" : "New Dataset"}
+        </button>
       </header>
+
+      {isCreating && (
+        <form onSubmit={handleCreate} style={{ marginBottom: "2rem", padding: "1.5rem", backgroundColor: "var(--bg-panel)", border: "1px solid var(--border)", borderRadius: "8px" }}>
+          <h3 style={{ marginTop: 0 }}>Create Dataset</h3>
+          <div style={{ display: "flex", gap: "1rem", marginBottom: "1rem" }}>
+            <input 
+              type="text" 
+              placeholder="Dataset Name" 
+              value={createForm.name} 
+              onChange={e => setCreateForm({...createForm, name: e.target.value})} 
+              className="form-control" 
+              required 
+            />
+            <select 
+              value={createForm.source} 
+              onChange={e => setCreateForm({...createForm, source: e.target.value})} 
+              className="form-control"
+            >
+              <option value="CNEOS_SCOUT">CNEOS Scout (NEO Hazard)</option>
+              <option value="NASA_DONKI_CME">NASA DONKI (CME Space Weather)</option>
+            </select>
+          </div>
+          <input 
+            type="text" 
+            placeholder="Description (optional)" 
+            value={createForm.description} 
+            onChange={e => setCreateForm({...createForm, description: e.target.value})} 
+            className="form-control" 
+            style={{ marginBottom: "1rem", width: "100%" }} 
+          />
+          <button type="submit" className="btn btn-primary">Create</button>
+        </form>
+      )}
 
       {datasets.length === 0 ? (
         <div className="empty-state" style={{ padding: "3rem", textAlign: "center", backgroundColor: "var(--bg-panel)", border: "1px solid var(--border)", borderRadius: "8px" }}>

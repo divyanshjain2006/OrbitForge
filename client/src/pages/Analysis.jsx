@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { useWorkspace } from "../contexts/WorkspaceContext";
 
 import {
   getMissionById,
@@ -57,6 +58,7 @@ function getApprovedScenario(
 
 function Analysis() {
   const { missionId } = useParams();
+  const { activeWorkspaceId } = useWorkspace();
 
   const [mission, setMission] = useState(null);
   const [analysis, setAnalysis] = useState(null);
@@ -133,6 +135,7 @@ function Analysis() {
     try {
       const historyData =
         await getMissionAssessmentHistory(
+          activeWorkspaceId,
           missionId
         );
 
@@ -214,10 +217,10 @@ function Analysis() {
         decisionsData
       ] = await Promise.all([
         getMissionById(missionId),
-        getMissionAnalysis(missionId),
-        getMissionIntelligence(missionId),
-        getMissionAssessmentHistory(missionId),
-        getMissionDecisions(missionId)
+        getMissionAnalysis(activeWorkspaceId, missionId),
+        getMissionIntelligence(activeWorkspaceId, missionId),
+        getMissionAssessmentHistory(activeWorkspaceId, missionId),
+        getMissionDecisions(activeWorkspaceId, missionId)
       ]);
 
       setMission(
@@ -315,6 +318,7 @@ function Analysis() {
       };
 
       const data = await createMissionDecision(
+        activeWorkspaceId,
         missionId,
         {
           decision,
@@ -405,10 +409,10 @@ function Analysis() {
           decisionsData
         ] = await Promise.all([
           getMissionById(missionId),
-          getMissionAnalysis(missionId),
-          getMissionIntelligence(missionId),
-          getMissionAssessmentHistory(missionId),
-          getMissionDecisions(missionId)
+          getMissionAnalysis(activeWorkspaceId, missionId),
+          getMissionIntelligence(activeWorkspaceId, missionId),
+          getMissionAssessmentHistory(activeWorkspaceId, missionId),
+          getMissionDecisions(activeWorkspaceId, missionId)
         ]);
 
         if (cancelled) {
@@ -465,7 +469,7 @@ function Analysis() {
     return () => {
       cancelled = true;
     };
-  }, [missionId]);
+  }, [missionId, activeWorkspaceId]);
 
   /*
    * =========================================================
@@ -732,12 +736,26 @@ function Analysis() {
           </p>
         </div>
 
-        <Link
-          to="/"
-          className="button button-secondary"
-        >
-          ← Dashboard
-        </Link>
+        <div className="header-actions" style={{ display: "flex", gap: "1rem" }}>
+          <Link
+            to={`/challenges/${missionId}`}
+            className="button button-primary"
+          >
+            Mission Challenges →
+          </Link>
+          <Link
+            to={`/simulation/${missionId}`}
+            className="button button-secondary"
+          >
+            Simulation Lab
+          </Link>
+          <Link
+            to="/"
+            className="button button-secondary"
+          >
+            ← Dashboard
+          </Link>
+        </div>
       </section>
 
       {/* =====================================================

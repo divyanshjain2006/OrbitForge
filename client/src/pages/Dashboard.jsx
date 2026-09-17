@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import { useWorkspace } from "../contexts/WorkspaceContext";
 
 import {
   deleteMission,
   getMissions,
-  getMissionIntelligence
+  getMissionIntelligence,
+  getResearchOverview
 } from "../services/api";
 
 function getRiskLevel(intelligence) {
@@ -74,9 +76,11 @@ function getRiskClass(level) {
 function Dashboard() {
   const navigate = useNavigate();
   const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const { activeWorkspaceId } = useWorkspace();
 
   const [missions, setMissions] = useState([]);
   const [intelligence, setIntelligence] = useState({});
+  const [researchOverview, setResearchOverview] = useState(null);
   const [loading, setLoading] = useState(true);
   const [intelligenceLoading, setIntelligenceLoading] =
     useState(false);
@@ -86,7 +90,7 @@ function Dashboard() {
     let cancelled = false;
 
     async function fetchDashboardData() {
-      if (!isAuthenticated) {
+      if (!isAuthenticated || !activeWorkspaceId) {
         setLoading(false);
         return;
       }
@@ -94,8 +98,17 @@ function Dashboard() {
         setLoading(true);
         setError("");
 
-        const data = await getMissions();
+        const data = await getMissions(activeWorkspaceId);
         const loadedMissions = data.missions || [];
+
+        // Fetch research overview in parallel
+        let overview = null;
+        try {
+          const res = await getResearchOverview(activeWorkspaceId);
+          if (res.success && res.overview) overview = res.overview;
+        } catch { /* research overview is optional */ }
+        if (cancelled) return;
+        setResearchOverview(overview);
 
         if (cancelled) {
           return;
@@ -114,6 +127,7 @@ function Dashboard() {
           loadedMissions.map(async (mission) => {
             const result =
               await getMissionIntelligence(
+                activeWorkspaceId,
                 mission._id
               );
 
@@ -169,13 +183,13 @@ function Dashboard() {
     return () => {
       cancelled = true;
     };
-  }, [isAuthenticated, authLoading]);
+  }, [isAuthenticated, authLoading, activeWorkspaceId]);
 
   async function refreshMissions() {
     try {
       setError("");
 
-      const data = await getMissions();
+      const data = await getMissions(activeWorkspaceId);
       const loadedMissions = data.missions || [];
 
       setMissions(loadedMissions);
@@ -191,6 +205,7 @@ function Dashboard() {
         loadedMissions.map(async (mission) => {
           const result =
             await getMissionIntelligence(
+              activeWorkspaceId,
               mission._id
             );
 
@@ -300,14 +315,14 @@ function Dashboard() {
       <section className="dashboard-hero">
         <div className="dashboard-hero-copy">
           <p className="page-eyebrow">
-            ORBITAL MISSION CONTROL
+            PLATFORM CONTROL CENTER
           </p>
 
           <h1>OrbitForge</h1>
 
           <p className="page-subtitle">
-            Mission intelligence, research provenance,
-            and orbital risk assessment for LEO missions.
+            Workspace overview, mission intelligence, research provenance,
+            and orbital risk assessment.
           </p>
         </div>
 
@@ -317,6 +332,13 @@ function Dashboard() {
             className="button button-primary"
           >
             + Create Mission
+          </Link>
+          <Link
+            to="/research"
+            className="button button-secondary"
+            style={{ marginLeft: "0.5rem" }}
+          >
+            Research Lab
           </Link>
         </div>
       </section>
@@ -382,6 +404,42 @@ function Dashboard() {
             <span className="dashboard-stat-description">
               Missions requiring attention
             </span>
+          </article>
+        </section>
+      )}
+
+      {/* =====================================================
+          RESEARCH & DATA OVERVIEW
+      ===================================================== */}
+
+      {!loading && !error && isAuthenticated && researchOverview && (
+        <section className="dashboard-intelligence-grid" style={{ marginTop: "1.5rem" }}>
+          <Link to="/research/datasets" style={{ textDecoration: "none", color: "inherit" }}>
+            <article className="dashboard-stat-card">
+              <span className="dashboard-stat-label">DATASETS</span>
+              <strong className="dashboard-stat-value">{researchOverview.counts?.datasets || 0}</strong>
+              <span className="dashboard-stat-description">NASA data sources</span>
+            </article>
+          </Link>
+
+          <Link to="/research/projects" style={{ textDecoration: "none", color: "inherit" }}>
+            <article className="dashboard-stat-card">
+              <span className="dashboard-stat-label">PROJECTS</span>
+              <strong className="dashboard-stat-value">{researchOverview.counts?.projects || 0}</strong>
+              <span className="dashboard-stat-description">Research projects</span>
+            </article>
+          </Link>
+
+          <article className="dashboard-stat-card">
+            <span className="dashboard-stat-label">EXPERIMENTS</span>
+            <strong className="dashboard-stat-value">{researchOverview.counts?.experiments || 0}</strong>
+            <span className="dashboard-stat-description">Scientific experiments</span>
+          </article>
+
+          <article className="dashboard-stat-card dashboard-stat-low">
+            <span className="dashboard-stat-label">VERIFIED RECORDS</span>
+            <strong className="dashboard-stat-value">{researchOverview.integrityCounts?.verified || 0}</strong>
+            <span className="dashboard-stat-description">Integrity-verified research</span>
           </article>
         </section>
       )}
@@ -626,8 +684,24 @@ function Dashboard() {
                           )
                         }
                       >
-                        Analyze Mission
+                        Analyze
                       </button>
+
+                      <Link
+                        to={`/simulation/${mission._id}`}
+                        className="button button-secondary"
+                        style={{ textDecoration: "none" }}
+                      >
+                        Simulate
+                      </Link>
+
+                      <Link
+                        to={`/challenges/${mission._id}`}
+                        className="button button-secondary"
+                        style={{ textDecoration: "none" }}
+                      >
+                        Challenge
+                      </Link>
 
                       <button
                         type="button"

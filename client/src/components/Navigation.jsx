@@ -13,6 +13,12 @@ function Navigation() {
     navigate("/login");
   };
 
+  const navItems = [
+    { to: "/", label: "Platform Overview", end: true },
+    { to: "/research/datasets", label: "NASA Data", authOnly: true },
+    { to: "/research", label: "Research Lab", authOnly: true },
+  ];
+
   return (
     <header className="top-nav" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", minWidth: 0 }}>
       <div style={{ display: "flex", alignItems: "center", gap: "2rem", minWidth: 0 }}>
@@ -22,26 +28,21 @@ function Navigation() {
         </Link>
 
         <nav className="nav-links nav-desktop-only">
-          <NavLink
-            to="/"
-            end
-            className={({ isActive }) =>
-              `nav-link ${isActive ? "active" : ""}`
-            }
-          >
-            Mission Lab
-          </NavLink>
-
-          {isAuthenticated && (
-            <NavLink
-              to="/research"
-              className={({ isActive }) =>
-                `nav-link ${isActive ? "active" : ""}`
-              }
-            >
-              Research Lab
-            </NavLink>
-          )}
+          {navItems.map((item) => {
+            if (item.authOnly && !isAuthenticated) return null;
+            return (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                end={item.end}
+                className={({ isActive }) =>
+                  `nav-link ${isActive ? "active" : ""}`
+                }
+              >
+                {item.label}
+              </NavLink>
+            );
+          })}
         </nav>
       </div>
 
@@ -81,28 +82,22 @@ function Navigation() {
       {isMobileOpen && (
         <div className="nav-mobile-menu">
           <nav style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-            <NavLink
-              to="/"
-              end
-              className={({ isActive }) =>
-                `nav-link ${isActive ? "active" : ""}`
-              }
-              onClick={() => setIsMobileOpen(false)}
-            >
-              Mission Lab
-            </NavLink>
-
-            {isAuthenticated && (
-              <NavLink
-                to="/research"
-                className={({ isActive }) =>
-                  `nav-link ${isActive ? "active" : ""}`
-                }
-                onClick={() => setIsMobileOpen(false)}
-              >
-                Research Lab
-              </NavLink>
-            )}
+            {navItems.map((item) => {
+              if (item.authOnly && !isAuthenticated) return null;
+              return (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  end={item.end}
+                  className={({ isActive }) =>
+                    `nav-link ${isActive ? "active" : ""}`
+                  }
+                  onClick={() => setIsMobileOpen(false)}
+                >
+                  {item.label}
+                </NavLink>
+              );
+            })}
           </nav>
 
           {isAuthenticated && <WorkspaceSelector />}

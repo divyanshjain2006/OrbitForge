@@ -254,3 +254,64 @@ export function validateApplyScenarioBody(req, res, next) {
   }
   return next();
 }
+
+const SIMULATION_EVENT_TYPES = new Set([
+  "ENVIRONMENTAL_CHANGE",
+  "ORBIT_CONFIGURATION_CHANGE",
+  "MISSION_ANOMALY",
+  "OPERATIONAL_EVENT"
+]);
+
+const SIMULATION_DECISION_TYPES = new Set([
+  "MAINTAIN_ORBIT",
+  "ADJUST_ORBIT",
+  "SAFE_MODE",
+  "GATHER_MORE_DATA"
+]);
+
+export function validateSimulationEventBody(req, res, next) {
+  const body = req.body;
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    return res.status(400).json({ success: false, message: "Request body must be a JSON object." });
+  }
+
+  if (!SIMULATION_EVENT_TYPES.has(body.type)) {
+    return res.status(400).json({ success: false, message: "Invalid simulation event type." });
+  }
+
+  if (typeof body.description !== "string" || !body.description.trim()) {
+    return res.status(400).json({ success: false, message: "Event description is required." });
+  }
+
+  return next();
+}
+
+export function validateSimulationDecisionBody(req, res, next) {
+  const body = req.body;
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    return res.status(400).json({ success: false, message: "Request body must be a JSON object." });
+  }
+
+  if (!SIMULATION_DECISION_TYPES.has(body.type)) {
+    return res.status(400).json({ success: false, message: "Invalid simulation decision type." });
+  }
+
+  if (typeof body.description !== "string" || !body.description.trim()) {
+    return res.status(400).json({ success: false, message: "Decision description is required." });
+  }
+
+  if (body.type === "ADJUST_ORBIT") {
+    if (!body.parameters || typeof body.parameters !== "object" || Array.isArray(body.parameters)) {
+      return res.status(400).json({ success: false, message: "ADJUST_ORBIT requires parameters." });
+    }
+    const { altitudeDeltaKm, inclinationDeltaDeg } = body.parameters;
+    if (altitudeDeltaKm !== undefined && typeof altitudeDeltaKm !== "number") {
+      return res.status(400).json({ success: false, message: "altitudeDeltaKm must be a number." });
+    }
+    if (inclinationDeltaDeg !== undefined && typeof inclinationDeltaDeg !== "number") {
+      return res.status(400).json({ success: false, message: "inclinationDeltaDeg must be a number." });
+    }
+  }
+
+  return next();
+}

@@ -102,7 +102,11 @@ export default function DatasetDetail() {
       <div className="metadata-panel" style={{ backgroundColor: "var(--bg-panel)", border: "1px solid var(--border)", borderRadius: "8px", padding: "1.5rem", marginBottom: "2rem" }}>
         <h3 style={{ margin: "0 0 1rem 0" }}>Metadata</h3>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem", fontSize: "0.9rem" }}>
-          <div><strong style={{ color: "var(--text-secondary)" }}>Source:</strong> <span style={{ color: "var(--accent)" }}>{dataset.source}</span></div>
+          <div>
+            <strong style={{ color: "var(--text-secondary)" }}>Source:</strong> 
+            <span style={{ color: "var(--accent)", marginLeft: "0.5rem" }}>{dataset.source}</span>
+            <span style={{ marginLeft: "0.75rem", fontSize: "0.75rem", padding: "0.2rem 0.4rem", borderRadius: "4px", backgroundColor: "rgba(0, 123, 255, 0.1)", color: "#007bff", fontWeight: "bold" }}>REAL NASA DATA</span>
+          </div>
           <div><strong style={{ color: "var(--text-secondary)" }}>Status:</strong> {dataset.status || "Active"}</div>
           {dataset.sourceUri && (
             <div style={{ gridColumn: "1 / -1" }}>

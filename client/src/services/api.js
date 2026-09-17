@@ -32,8 +32,8 @@ export async function getHealthStatus() {
   return response.json();
 }
 
-export async function createMission(missionData) {
-  const response = await apiFetch(`${API_BASE_URL}/missions`, {
+export async function createMission(workspaceId, missionData) {
+  const response = await apiFetch(`${API_BASE_URL}/v1/workspaces/${workspaceId}/missions`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
@@ -57,9 +57,10 @@ export async function createMission(missionData) {
   return data;
 }
 
-export async function getMissions() {
+export async function getMissions(workspaceId) {
+  if (!workspaceId) return { missions: [] };
   const response = await apiFetch(
-    `${API_BASE_URL}/missions?_=${Date.now()}`,
+    `${API_BASE_URL}/v1/workspaces/${workspaceId}/missions?_=${Date.now()}`,
     {
       cache: "no-store"
     }
@@ -74,7 +75,7 @@ export async function getMissions() {
 
 export async function getMissionById(missionId) {
   const response = await apiFetch(
-    `${API_BASE_URL}/missions/${missionId}`
+    `${API_BASE_URL}/v1/missions/${missionId}`
   );
 
   const data = await response.json();
@@ -90,7 +91,7 @@ export async function getMissionById(missionId) {
 
 export async function deleteMission(missionId) {
   const response = await apiFetch(
-    `${API_BASE_URL}/missions/${missionId}`,
+    `${API_BASE_URL}/v1/missions/${missionId}`,
     {
       method: "DELETE"
     }
@@ -107,9 +108,9 @@ export async function deleteMission(missionId) {
   return data;
 }
 
-export async function getMissionAnalysis(missionId) {
+export async function getMissionAnalysis(workspaceId, missionId) {
   const response = await apiFetch(
-    `${API_BASE_URL}/analysis/${missionId}`
+    `${API_BASE_URL}/v1/workspaces/${workspaceId}/missions/${missionId}/analysis`
   );
 
   const data = await response.json();
@@ -123,9 +124,9 @@ export async function getMissionAnalysis(missionId) {
   return data;
 }
 
-export async function getMissionIntelligence(missionId) {
+export async function getMissionIntelligence(workspaceId, missionId) {
   const response = await apiFetch(
-    `${API_BASE_URL}/intelligence/${missionId}`
+    `${API_BASE_URL}/v1/workspaces/${workspaceId}/missions/${missionId}/intelligence`
   );
 
   const data = await response.json();
@@ -139,22 +140,19 @@ export async function getMissionIntelligence(missionId) {
 
   return data;
 }
-export async function runScenario(
+export async function analyzeScenario(
+  workspaceId,
   missionId,
-  scenarioData
+  scenario
 ) {
   const response = await apiFetch(
-    `${API_BASE_URL}/scenario/${missionId}`,
+    `${API_BASE_URL}/v1/workspaces/${workspaceId}/missions/${missionId}/scenario`,
     {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
       },
-      body: JSON.stringify({
-        altitude: Number(scenarioData.altitude),
-        inclination: Number(scenarioData.inclination),
-        duration: Number(scenarioData.duration)
-      })
+      body: JSON.stringify(scenario)
     }
   );
 
@@ -174,12 +172,12 @@ export async function getSpaceEnvironment(
   inclination
 ) {
   const params = new URLSearchParams({
-    altitude: String(altitude),
-    inclination: String(inclination)
+    altitude,
+    inclination
   });
 
   const response = await apiFetch(
-    `${API_BASE_URL}/environment?${params.toString()}`
+    `${API_BASE_URL}/v1/environment?${params.toString()}`
   );
 
   const data = await response.json();
@@ -193,9 +191,9 @@ export async function getSpaceEnvironment(
 
   return data;
 }
-export async function getMissionAssessments(missionId) {
+export async function getMissionAssessments(workspaceId, missionId) {
   const response = await apiFetch(
-    `${API_BASE_URL}/assessments/${missionId}?_=${Date.now()}`,
+    `${API_BASE_URL}/v1/workspaces/${workspaceId}/missions/${missionId}/assessments?_=${Date.now()}`,
     {
       cache: "no-store"
     }
@@ -213,10 +211,11 @@ export async function getMissionAssessments(missionId) {
   return data;
 }
 export async function getMissionAssessmentHistory(
+  workspaceId,
   missionId
 ) {
   const response = await apiFetch(
-    `${API_BASE_URL}/assessments/${missionId}`
+    `${API_BASE_URL}/v1/workspaces/${workspaceId}/missions/${missionId}/assessments`
   );
 
   const data = await response.json();
@@ -231,9 +230,9 @@ export async function getMissionAssessmentHistory(
   return data;
 }
 
-export async function getMissionDecisions(missionId) {
+export async function getMissionDecisions(workspaceId, missionId) {
   const response = await apiFetch(
-    `${API_BASE_URL}/decisions/${missionId}?_=${Date.now()}`,
+    `${API_BASE_URL}/v1/workspaces/${workspaceId}/missions/${missionId}/decisions?_=${Date.now()}`,
     {
       cache: "no-store"
     }
@@ -252,25 +251,18 @@ export async function getMissionDecisions(missionId) {
 }
 
 export async function createMissionDecision(
+  workspaceId,
   missionId,
   decisionData
 ) {
   const response = await apiFetch(
-    `${API_BASE_URL}/decisions/${missionId}`,
+    `${API_BASE_URL}/v1/workspaces/${workspaceId}/missions/${missionId}/decisions`,
     {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
       },
-      body: JSON.stringify({
-        decision: decisionData.decision,
-        reason: decisionData.reason,
-        source:
-          decisionData.source ||
-          "CURRENT_CONFIGURATION",
-        scenarioId:
-          decisionData.scenarioId || null
-      })
+      body: JSON.stringify(decisionData)
     }
   );
 
@@ -287,17 +279,21 @@ export async function createMissionDecision(
 }
 export async function applyApprovedScenario(
   missionId,
-  scenarioId
+  scenarioAssessmentId,
+  appliedBy,
+  notes
 ) {
   const response = await apiFetch(
-    `${API_BASE_URL}/missions/${missionId}/apply-approved-scenario`,
+    `${API_BASE_URL}/v1/missions/${missionId}/apply-approved-scenario`,
     {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        scenarioId
+        scenarioAssessmentId,
+        appliedBy,
+        notes
       })
     }
   );
@@ -377,6 +373,14 @@ export async function getWorkspaces() {
 
 export async function getDatasets(workspaceId) {
   const response = await apiFetch(`${API_BASE_URL}/v1/workspaces/${workspaceId}/datasets`);
+  return parseApiResponse(response);
+}
+
+export async function createDataset(workspaceId, payload) {
+  const response = await apiFetch(`${API_BASE_URL}/v1/workspaces/${workspaceId}/datasets`, {
+    method: "POST",
+    body: JSON.stringify(payload)
+  });
   return parseApiResponse(response);
 }
 
@@ -524,5 +528,80 @@ export async function verifyResearchRecord(id) {
 
 export async function getVerificationHistory(id) {
   const response = await apiFetch(`${API_BASE_URL}/v1/research-records/${id}/verifications`);
+  return parseApiResponse(response);
+}
+
+/* =========================================================
+   SIMULATIONS
+   ========================================================= */
+
+export async function createSimulation(missionId) {
+  const response = await apiFetch(`${API_BASE_URL}/v1/missions/${missionId}/simulations`, { method: "POST" });
+  return parseApiResponse(response);
+}
+
+export async function getMissionSimulations(missionId) {
+  const response = await apiFetch(`${API_BASE_URL}/v1/missions/${missionId}/simulations`);
+  return parseApiResponse(response);
+}
+
+export async function getSimulation(id) {
+  const response = await apiFetch(`${API_BASE_URL}/v1/simulations/${id}`);
+  return parseApiResponse(response);
+}
+
+export async function triggerSimulationEvent(id, eventData) {
+  const response = await apiFetch(`${API_BASE_URL}/v1/simulations/${id}/events`, {
+    method: "POST",
+    body: JSON.stringify(eventData)
+  });
+  return parseApiResponse(response);
+}
+
+export async function submitSimulationDecision(id, decisionData) {
+  const response = await apiFetch(`${API_BASE_URL}/v1/simulations/${id}/decisions`, {
+    method: "POST",
+    body: JSON.stringify(decisionData)
+  });
+  return parseApiResponse(response);
+}
+
+/* =========================================================
+   MISSION CHALLENGES
+   ========================================================= */
+
+export async function getChallengeCatalog() {
+  const response = await apiFetch(`${API_BASE_URL}/v1/challenges/catalog`);
+  return parseApiResponse(response);
+}
+
+export async function getMissionChallenges(missionId) {
+  const response = await apiFetch(`${API_BASE_URL}/v1/challenges/missions/${missionId}`);
+  return parseApiResponse(response);
+}
+
+export async function createChallenge(missionId, challengeType) {
+  const response = await apiFetch(`${API_BASE_URL}/v1/challenges/missions/${missionId}`, {
+    method: "POST",
+    body: JSON.stringify({ challengeType })
+  });
+  return parseApiResponse(response);
+}
+
+export async function getChallenge(id) {
+  const response = await apiFetch(`${API_BASE_URL}/v1/challenges/${id}`);
+  return parseApiResponse(response);
+}
+
+export async function startChallenge(id) {
+  const response = await apiFetch(`${API_BASE_URL}/v1/challenges/${id}/start`, { method: "POST" });
+  return parseApiResponse(response);
+}
+
+export async function submitChallengeDecision(id, decisionData) {
+  const response = await apiFetch(`${API_BASE_URL}/v1/challenges/${id}/decisions`, {
+    method: "POST",
+    body: JSON.stringify(decisionData)
+  });
   return parseApiResponse(response);
 }

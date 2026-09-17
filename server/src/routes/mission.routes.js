@@ -9,7 +9,10 @@ import {
 } from "../controllers/mission.controller.js";
 import { validateApplyScenarioBody, validateMissionBody, validateObjectId } from "../middleware/validation.js";
 
+import { requireAuthentication, requireWorkspaceRole, requireMissionWorkspace } from "../middleware/auth.js";
+
 const router = express.Router();
+router.use(requireAuthentication);
 
 /*
  * =========================================================
@@ -18,25 +21,29 @@ const router = express.Router();
  */
 
 router.post(
-  "/",
+  "/workspaces/:workspaceId/missions",
+  requireWorkspaceRole(["OWNER", "ADMIN", "RESEARCHER"]),
   validateMissionBody,
   createMissionController
 );
 
 router.get(
-  "/",
+  "/workspaces/:workspaceId/missions",
+  requireWorkspaceRole(["OWNER", "ADMIN", "RESEARCHER", "VIEWER"]),
   getMissionsController
 );
 
 router.get(
-  "/:id",
+  "/missions/:id",
   validateObjectId("id"),
+  requireMissionWorkspace(["OWNER", "ADMIN", "RESEARCHER", "VIEWER"]),
   getMissionByIdController
 );
 
 router.delete(
-  "/:id",
+  "/missions/:id",
   validateObjectId("id"),
+  requireMissionWorkspace(["OWNER", "ADMIN"]),
   deleteMissionController
 );
 
@@ -47,8 +54,9 @@ router.delete(
  */
 
 router.post(
-  "/:id/apply-approved-scenario",
+  "/missions/:id/apply-approved-scenario",
   validateObjectId("id"),
+  requireMissionWorkspace(["OWNER", "ADMIN", "RESEARCHER"]),
   validateApplyScenarioBody,
   applyApprovedScenarioController
 );

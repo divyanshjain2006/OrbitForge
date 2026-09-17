@@ -11,6 +11,8 @@ import intelligenceRoutes from "./routes/intelligence.routes.js";
 import scenarioRoutes from "./routes/scenario.routes.js";
 import assessmentRoutes from "./routes/assessment.routes.js";
 import decisionRoutes from "./routes/decision.routes.js";
+import simulationRoutes from "./routes/simulation.routes.js";
+import challengeRoutes from "./routes/challenge.routes.js";
 import trustRoutes from "./routes/trust.routes.js";
 import authRoutes from "./routes/auth.routes.js";
 import workspaceRoutes from "./routes/workspace.routes.js";
@@ -106,49 +108,27 @@ app.get("/api/health", (req, res) => {
 });
 
 /* =========================================================
-   MISSIONS
+   V1 API ROUTES — All authenticated & workspace-scoped
    ========================================================= */
 
-app.use("/api/missions", missionRoutes);
-
-/* =========================================================
-   RISK
-   ========================================================= */
-
-app.use("/api", riskRoutes);
-
-/* =========================================================
-   ORBITAL ANALYSIS
-   ========================================================= */
-
-app.use("/api/analysis", analysisRoutes);
-
-/* =========================================================
-   MISSION INTELLIGENCE
-   ========================================================= */
-
-app.use("/api/intelligence", intelligenceRoutes);
-
-/* =========================================================
-   SCENARIO ANALYSIS
-   ========================================================= */
-
-app.use("/api/scenario", scenarioRoutes);
-
-app.use("/api/environment", environmentRoutes);
-app.use("/api/assessments", assessmentRoutes);
-app.use("/api/decisions", decisionRoutes);
-
-
-
-// Additive versioned trust APIs. Existing /api analysis behavior is preserved.
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1", trustRoutes);
 app.use("/api/v1/workspaces", workspaceRoutes);
 app.use("/api/v1", datasetRoutes);
 app.use("/api/v1", projectExperimentRoutes);
 app.use("/api/v1", researchWorkspaceRoutes);
-app.use("/api/v1", aiRoutes);
+app.use("/api/v1", missionRoutes);
+app.use("/api/v1", decisionRoutes);
+app.use("/api/v1/challenges", challengeRoutes);
+app.use("/api/v1/ai", aiRoutes);
+app.use("/api/v1", simulationRoutes);
+app.use("/api/v1", analysisRoutes);
+app.use("/api/v1", intelligenceRoutes);
+app.use("/api/v1", scenarioRoutes);
+app.use("/api/v1", riskRoutes);
+app.use("/api/v1", assessmentRoutes);
+app.use("/api/v1", environmentRoutes);
+
 /* =========================================================
    404 HANDLER
    ========================================================= */

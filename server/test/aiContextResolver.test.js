@@ -7,12 +7,15 @@ describe("AI Context Resolver", () => {
     const structured = {
       resources: {
         mission: { name: "Test Mission" },
-        dataset: { _id: "123", name: "Test Dataset" }
+        dataset: { _id: "123", name: "Test Dataset" },
+        simulation: { status: "ACTIVE", currentMissionDay: 50 }
       }
     };
     const text = formatContextForPrompt(structured);
     assert.match(text, /Test Mission/);
     assert.match(text, /Test Dataset/);
+    assert.match(text, /SIMULATION STATE/);
+    assert.match(text, /50/);
     assert.match(text, /ORBITFORGE GOVERNED CONTEXT/);
   });
 });
