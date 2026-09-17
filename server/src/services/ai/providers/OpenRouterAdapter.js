@@ -1,6 +1,6 @@
 import { ProviderAdapter } from "./ProviderAdapter.js";
 
-export class GeminiAdapter extends ProviderAdapter {
+export class OpenRouterAdapter extends ProviderAdapter {
   constructor(model, apiKey) {
     super(model);
     this.apiKey = apiKey;
@@ -8,29 +8,30 @@ export class GeminiAdapter extends ProviderAdapter {
 
   async structuredGenerate(systemPrompt, userPrompt) {
     if (!this.apiKey) {
-      throw new Error("GEMINI_API_KEY is not configured");
+      throw new Error("OPENROUTER_API_KEY is not configured");
     }
 
     const payload = {
-      systemInstruction: {
-        parts: [{ text: systemPrompt }]
-      },
-      contents: [
-        {
-          role: "user",
-          parts: [{ text: userPrompt }]
-        }
+      model: this.model,
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt }
       ],
-      generationConfig: {
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: "OBJECT",
-          properties: {
-            answer: { type: "STRING" },
-            reasoningSummary: { type: "STRING" },
-            scientificCaveats: { type: "STRING" }
-          },
-          required: ["answer", "reasoningSummary", "scientificCaveats"]
+      response_format: {
+        type: "json_schema",
+        json_schema: {
+          name: "orbitforge_response",
+          strict: true,
+          schema: {
+            type: "object",
+            properties: {
+              answer: { type: "string" },
+              reasoningSummary: { type: "string" },
+              scientificCaveats: { type: "string" }
+            },
+            required: ["answer", "reasoningSummary", "scientificCaveats"],
+            additionalProperties: false
+          }
         }
       }
     };
@@ -39,10 +40,13 @@ export class GeminiAdapter extends ProviderAdapter {
     const timeout = setTimeout(() => controller.abort(), 60000); // 60s timeout
 
     try {
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${this.model}:generateContent?key=${this.apiKey}`, {
+      const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${this.apiKey}`,
+          "HTTP-Referer": "https://orbitforge.app",
+          "X-Title": "OrbitForge"
         },
         body: JSON.stringify(payload),
         signal: controller.signal
@@ -56,11 +60,11 @@ export class GeminiAdapter extends ProviderAdapter {
         } catch {
           errorText = response.statusText;
         }
-        throw new Error(`Gemini API error: ${response.status} - ${errorText}`);
+        throw new Error(`OpenRouter API error: ${response.status} - ${errorText}`);
       }
 
       const data = await response.json();
-      const content = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      const content = data.choices?.[0]?.message?.content;
       
       if (!content) {
         throw new Error("Malformed provider response: no content returned");

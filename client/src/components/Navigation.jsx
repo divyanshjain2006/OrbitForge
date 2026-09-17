@@ -17,6 +17,7 @@ function Navigation() {
     { to: "/", label: "Overview", end: true },
     { to: "/research/datasets", label: "NASA Space Weather", authOnly: true },
     { to: "/research", label: "Research Lab", authOnly: true },
+    { to: "/settings/ai", label: "AI Settings", authOnly: true },
   ];
 
   return (

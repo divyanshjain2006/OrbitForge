@@ -637,3 +637,48 @@ export async function publishChallengeToResearch(challengeId) {
   });
   return parseApiResponse(response);
 }
+
+/* =========================================================
+   AI CONFIGURATION (BYOK)
+   ========================================================= */
+
+export async function getAiProviders() {
+  const response = await apiFetch(`${API_BASE_URL}/v1/ai-config/providers`);
+  return parseApiResponse(response);
+}
+
+export async function addAiProvider(provider, apiKey) {
+  const response = await apiFetch(`${API_BASE_URL}/v1/ai-config/providers`, {
+    method: "POST",
+    body: JSON.stringify({ provider, apiKey })
+  });
+  return parseApiResponse(response);
+}
+
+export async function testAiProvider(provider) {
+  const response = await apiFetch(`${API_BASE_URL}/v1/ai-config/providers/${provider}/test`, {
+    method: "POST",
+    body: JSON.stringify({})
+  });
+  return parseApiResponse(response);
+}
+
+export async function removeAiProvider(provider) {
+  const response = await apiFetch(`${API_BASE_URL}/v1/ai-config/providers/${provider}`, {
+    method: "DELETE"
+  });
+  return parseApiResponse(response);
+}
+
+export async function getAiRoles() {
+  const response = await apiFetch(`${API_BASE_URL}/v1/ai-config/roles`);
+  return parseApiResponse(response);
+}
+
+export async function updateAiRole(role, provider, model) {
+  const response = await apiFetch(`${API_BASE_URL}/v1/ai-config/roles/${role}`, {
+    method: "PUT",
+    body: JSON.stringify({ provider, model })
+  });
+  return parseApiResponse(response);
+}

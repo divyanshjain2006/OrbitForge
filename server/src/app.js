@@ -20,6 +20,7 @@ import datasetRoutes from "./routes/dataset.routes.js";
 import projectExperimentRoutes from "./routes/projectExperiment.routes.js";
 import researchWorkspaceRoutes from "./routes/researchWorkspace.routes.js";
 import aiRoutes from "./routes/ai.routes.js";
+import aiConfigRoutes from "./routes/aiConfig.routes.js";
 import { localRateLimit, requestContext, securityHeaders } from "./middleware/security.js";
 
 const sourceDirectory = dirname(fileURLToPath(import.meta.url));
@@ -88,7 +89,7 @@ app.use(cors({
 
     return callback(new Error("Origin is not allowed by CORS."));
   },
-  methods: ["GET", "POST", "DELETE"],
+  methods: ["GET", "POST", "PUT", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true
 }));
@@ -121,6 +122,7 @@ app.use("/api/v1", missionRoutes);
 app.use("/api/v1", decisionRoutes);
 app.use("/api/v1/challenges", challengeRoutes);
 app.use("/api/v1/ai", aiRoutes);
+app.use("/api/v1/ai-config", aiConfigRoutes);
 app.use("/api/v1", simulationRoutes);
 app.use("/api/v1", analysisRoutes);
 app.use("/api/v1", intelligenceRoutes);

@@ -1,6 +1,6 @@
 import { ProviderAdapter } from "./ProviderAdapter.js";
 
-export class OpenAiAdapter extends ProviderAdapter {
+export class ClaudeAdapter extends ProviderAdapter {
   constructor(model, apiKey) {
     super(model);
     this.apiKey = apiKey;
@@ -8,43 +8,44 @@ export class OpenAiAdapter extends ProviderAdapter {
 
   async structuredGenerate(systemPrompt, userPrompt) {
     if (!this.apiKey) {
-      throw new Error("OPENAI_API_KEY is not configured");
+      throw new Error("CLAUDE_API_KEY is not configured");
     }
 
     const payload = {
       model: this.model,
+      system: systemPrompt,
       messages: [
-        { role: "system", content: systemPrompt },
         { role: "user", content: userPrompt }
       ],
-      response_format: {
-        type: "json_schema",
-        json_schema: {
+      max_tokens: 4096,
+      tools: [
+        {
           name: "orbitforge_response",
-          strict: true,
-          schema: {
+          description: "Respond with the structured OrbitForge format",
+          input_schema: {
             type: "object",
             properties: {
               answer: { type: "string" },
               reasoningSummary: { type: "string" },
               scientificCaveats: { type: "string" }
             },
-            required: ["answer", "reasoningSummary", "scientificCaveats"],
-            additionalProperties: false
+            required: ["answer", "reasoningSummary", "scientificCaveats"]
           }
         }
-      }
+      ],
+      tool_choice: { type: "tool", name: "orbitforge_response" }
     };
 
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 60000); // 60s timeout
 
     try {
-      const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      const response = await fetch("https://api.anthropic.com/v1/messages", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${this.apiKey}`
+          "x-api-key": this.apiKey,
+          "anthropic-version": "2023-06-01"
         },
         body: JSON.stringify(payload),
         signal: controller.signal
@@ -58,17 +59,17 @@ export class OpenAiAdapter extends ProviderAdapter {
         } catch {
           errorText = response.statusText;
         }
-        throw new Error(`OpenAI API error: ${response.status} - ${errorText}`);
+        throw new Error(`Claude API error: ${response.status} - ${errorText}`);
       }
 
       const data = await response.json();
-      const content = data.choices?.[0]?.message?.content;
       
-      if (!content) {
-        throw new Error("Malformed provider response: no content returned");
+      const toolCall = data.content?.find(c => c.type === "tool_use" && c.name === "orbitforge_response");
+      if (!toolCall || !toolCall.input) {
+        throw new Error("Malformed provider response: no structured tool call returned");
       }
 
-      return JSON.parse(content);
+      return toolCall.input;
     } catch (err) {
       if (err.name === "AbortError") {
         throw new Error("Provider timeout");

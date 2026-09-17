@@ -1,15 +1,24 @@
 import AiInteraction from "../../models/aiInteraction.model.js";
-import { getRoleConfig } from "./AiRoleConfig.js";
+import AiRoleConfigDb from "../../models/aiRoleConfig.model.js";
+import AiProviderDb from "../../models/aiProvider.model.js";
+import { getRoleConfig as getServerRoleConfig, AI_ROLES } from "./AiRoleConfig.js";
+import { decryptSecret } from "../../utils/crypto.js";
 import { resolveAiContext, formatContextForPrompt } from "./ContextResolver.js";
 import { OpenAiAdapter } from "./providers/OpenAiAdapter.js";
 import { GeminiAdapter } from "./providers/GeminiAdapter.js";
+import { ClaudeAdapter } from "./providers/ClaudeAdapter.js";
+import { OpenRouterAdapter } from "./providers/OpenRouterAdapter.js";
 
-function getAdapter(provider, model) {
+function getAdapter(provider, model, apiKey) {
   switch (provider.toLowerCase()) {
     case "openai":
-      return new OpenAiAdapter(model);
+      return new OpenAiAdapter(model, apiKey);
     case "gemini":
-      return new GeminiAdapter(model);
+      return new GeminiAdapter(model, apiKey);
+    case "claude":
+      return new ClaudeAdapter(model, apiKey);
+    case "openrouter":
+      return new OpenRouterAdapter(model, apiKey);
     default:
       throw new Error(`Unsupported AI provider: ${provider}`);
   }
@@ -41,9 +50,44 @@ You must return a strict JSON output matching the required schema.
 
 export async function processAiRequest(workspaceId, userId, role, contextRefs, userPrompt = "") {
   // 1. Resolve role config
-  const config = getRoleConfig(role);
-  if (!config) {
+  let provider = null;
+  let model = null;
+  let apiKey = null;
+
+  // Check valid role
+  if (!AI_ROLES[role]) {
     throw new Error(`Invalid or inactive AI role: ${role}`);
+  }
+
+  const userRoleConfig = await AiRoleConfigDb.findOne({ userId, role }).lean();
+  if (userRoleConfig) {
+    // User explicitly configured this role
+    provider = userRoleConfig.provider;
+    model = userRoleConfig.model;
+    
+    const userProvider = await AiProviderDb.findOne({ userId, provider }).lean();
+    if (!userProvider) {
+      throw new Error("AI Provider Not Configured: The configured provider is not connected.");
+    }
+    
+    apiKey = decryptSecret(userProvider);
+  } else {
+    // Fall back to server environment
+    const serverConfig = getServerRoleConfig(role);
+    if (!serverConfig) {
+      throw new Error("AI Provider Not Configured");
+    }
+    provider = serverConfig.provider;
+    model = serverConfig.model;
+    
+    if (provider === "openai") apiKey = process.env.OPENAI_API_KEY;
+    else if (provider === "gemini") apiKey = process.env.GEMINI_API_KEY;
+    else if (provider === "claude") apiKey = process.env.CLAUDE_API_KEY;
+    else if (provider === "openrouter") apiKey = process.env.OPENROUTER_API_KEY;
+    
+    if (!apiKey) {
+      throw new Error("AI Provider Not Configured");
+    }
   }
 
   // 2. Initialize Interaction
@@ -51,8 +95,8 @@ export async function processAiRequest(workspaceId, userId, role, contextRefs, u
     workspaceId,
     userId,
     role,
-    provider: config.provider,
-    model: config.model,
+    provider,
+    model,
     contextReferences: contextRefs,
     status: "FAILED"
   });
@@ -79,7 +123,7 @@ export async function processAiRequest(workspaceId, userId, role, contextRefs, u
     const finalUserPrompt = `${contextText}\n\nUSER PROMPT:\n${userPrompt || "Please explain this context."}`;
 
     // 5. Invoke Provider
-    const adapter = getAdapter(config.provider, config.model);
+    const adapter = getAdapter(provider, model, apiKey);
     
     const startTime = Date.now();
     let result;
@@ -107,8 +151,8 @@ export async function processAiRequest(workspaceId, userId, role, contextRefs, u
     return {
       success: true,
       role,
-      provider: config.provider,
-      model: config.model,
+      provider,
+      model,
       answer: result.answer,
       reasoningSummary: result.reasoningSummary,
       scientificCaveats: result.scientificCaveats,

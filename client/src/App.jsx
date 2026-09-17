@@ -9,6 +9,7 @@ import MissionChallenges from "./pages/MissionChallenges";
 import ChallengeDebrief from "./pages/ChallengeDebrief";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import AiSettings from "./pages/AiSettings";
 
 // Research Lab Pages
 import ResearchLayout from "./components/ResearchLayout";
@@ -79,6 +80,11 @@ function App() {
                 <Route path="/challenges/:missionId/:challengeId/debrief" element={
                   <ProtectedRoute>
                     <ChallengeDebrief />
+                  </ProtectedRoute>
+                } />
+                <Route path="/settings/ai" element={
+                  <ProtectedRoute>
+                    <AiSettings />
                   </ProtectedRoute>
                 } />
 
