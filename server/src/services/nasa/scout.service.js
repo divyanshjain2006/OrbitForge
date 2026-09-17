@@ -1,12 +1,12 @@
 import { normalizeScoutPayload, ADAPTER_VERSION } from "./scout.adapter.js";
 
-const DEFAULT_SCOUT_URI = "https://cneos.jpl.nasa.gov/scout.api";
+const DEFAULT_SCOUT_URI = "https://ssd-api.jpl.nasa.gov/scout.api";
 const TIMEOUT_MS = 10000;
 
 export function scoutSourceUri() {
   const configured = process.env.CNEOS_SCOUT_URI || DEFAULT_SCOUT_URI;
   const uri = new URL(configured);
-  if (uri.protocol !== "https:" || uri.hostname !== "cneos.jpl.nasa.gov" || uri.pathname !== "/scout.api") throw new Error("CNEOS_SCOUT_URI must use the allowlisted official Scout endpoint.");
+  if (uri.protocol !== "https:" || uri.hostname !== "ssd-api.jpl.nasa.gov" || uri.pathname !== "/scout.api") throw new Error("CNEOS_SCOUT_URI must use the allowlisted official Scout endpoint.");
   return uri.toString();
 }
 

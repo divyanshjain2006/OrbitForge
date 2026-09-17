@@ -9,7 +9,7 @@ const recentIngestions = new Map();
 const INGESTION_COOLDOWN_MS = 30000;
 
 export function createDataset(input) {
-  return Dataset.create({ ...input, source: "CNEOS_SCOUT", sourceType: "NASA_API", sourceUri: "https://cneos.jpl.nasa.gov/scout.api", datasetType: "NEO_HAZARD_ASSESSMENT" });
+  return Dataset.create({ ...input, source: "CNEOS_SCOUT", sourceType: "NASA_API", sourceUri: "https://ssd-api.jpl.nasa.gov/scout.api", datasetType: "NEO_HAZARD_ASSESSMENT" });
 }
 export function listDatasets(workspaceId) { return Dataset.find({ workspaceId }).sort({ createdAt: -1 }).lean(); }
 export function getDataset(id) { return Dataset.findById(id).lean(); }

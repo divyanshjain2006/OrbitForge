@@ -49,7 +49,7 @@ async function setup() {
 
   const originalFetch = global.fetch;
   global.fetch = async (url, options) => {
-    if (String(url) === "https://cneos.jpl.nasa.gov/scout.api") {
+    if (String(url) === "https://ssd-api.jpl.nasa.gov/scout.api") {
       return {
         ok: true,
         json: async () => ({
@@ -208,7 +208,7 @@ async function testDatasets() {
     const dv = await DatasetVersion.create({
       datasetId,
       version: 1,
-      sourceUri: "https://cneos.jpl.nasa.gov/scout.api",
+      sourceUri: "https://ssd-api.jpl.nasa.gov/scout.api",
       normalizedPayload: { test: true },
       normalizedPayloadHash: "sha256:0000000000000000000000000000000000000000000000000000000000000000",
       rawPayload: { test: true },

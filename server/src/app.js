@@ -60,13 +60,34 @@ function isAllowedOrigin(origin) {
 app.disable("x-powered-by");
 app.use(requestContext);
 app.use(securityHeaders);
+
+app.use((req, res, next) => {
+  const originalOrigin = req.headers.origin;
+  const forwardedHost = req.headers["x-forwarded-host"];
+  const forwardedProto = req.headers["x-forwarded-proto"];
+
+  if (
+    forwardedProto === "https" &&
+    typeof forwardedHost === "string" &&
+    isCodespacesPreviewOrigin(`https://${forwardedHost}`) &&
+    originalOrigin === "https://localhost:5173"
+  ) {
+    req.headers.origin = `https://${forwardedHost}`;
+  }
+
+  next();
+});
 app.use(cors({
   origin(origin, callback) {
-    if (!origin || isAllowedOrigin(origin)) return callback(null, true);
+    if (!origin || isAllowedOrigin(origin)) {
+      return callback(null, true);
+    }
+
     return callback(new Error("Origin is not allowed by CORS."));
   },
   methods: ["GET", "POST", "DELETE"],
-  allowedHeaders: ["Content-Type", "Authorization"]
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true
 }));
 
 app.use("/api", localRateLimit);
@@ -145,7 +166,12 @@ app.use((error, req, res, next) => { // eslint-disable-line no-unused-vars
   if (error?.message === "Origin is not allowed by CORS.") {
     return res.status(403).json({ success: false, message: "Origin is not allowed." });
   }
-  console.error("Unhandled request error", { requestId: req.requestId, message: error?.message });
+  console.error("Unhandled request error", {
+    requestId: req.requestId,
+    message: error?.message,
+    name: error?.name,
+    stack: error?.stack
+  });
   return res.status(500).json({ success: false, message: "Unexpected server error." });
 });
 
