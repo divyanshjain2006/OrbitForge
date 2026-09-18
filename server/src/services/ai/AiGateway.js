@@ -51,7 +51,7 @@ You must return a strict JSON output matching the required schema.
 function getDefaultModel(provider) {
   switch (provider) {
     case "openai": return "gpt-4o-mini";
-    case "gemini": return "gemini-1.5-flash";
+    case "gemini": return "gemini-flash-latest";
     case "claude": return "claude-3-haiku-20240307";
     case "openrouter": return "meta-llama/llama-3-8b-instruct:free";
     default: return "gpt-4o-mini";

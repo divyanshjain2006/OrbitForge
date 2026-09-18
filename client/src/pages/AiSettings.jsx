@@ -105,7 +105,7 @@ export default function AiSettings() {
 
     const defaultModels = {
       openai: "gpt-4o-mini",
-      gemini: "gemini-1.5-flash",
+      gemini: "gemini-flash-latest",
       claude: "claude-3-haiku-20240307",
       openrouter: "meta-llama/llama-3-8b-instruct:free"
     };

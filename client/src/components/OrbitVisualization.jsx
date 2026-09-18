@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef } from "react";
 
 function OrbitVisualization({
   altitude,
@@ -17,7 +17,7 @@ function OrbitVisualization({
     180
   );
 
-  const [orbitProgress, setOrbitProgress] = useState(0);
+  const spacecraftRef = useRef(null);
 
   useEffect(() => {
     let animationFrame;
@@ -29,8 +29,11 @@ function OrbitVisualization({
       }
 
       const elapsed = timestamp - startTime;
+      const progress = (elapsed / 12000) % 1;
 
-      setOrbitProgress((elapsed / 12000) % 1);
+      if (spacecraftRef.current) {
+        spacecraftRef.current.style.offsetDistance = `${progress * 100}%`;
+      }
 
       animationFrame = requestAnimationFrame(animate);
     }
@@ -116,10 +119,8 @@ function OrbitVisualization({
           <div className="orbit-path">
             {/* Spacecraft */}
             <div
+              ref={spacecraftRef}
               className="orbit-spacecraft"
-              style={{
-                offsetDistance: `${orbitProgress * 100}%`
-              }}
             >
               <div className="spacecraft-glow" />
 
